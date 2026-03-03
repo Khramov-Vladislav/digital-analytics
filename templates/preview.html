@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<style>
+    body { font-family: Arial, sans-serif; }
+    .section { margin-bottom: 10px; }
+</style>
+</head>
+<body>
+{{with .Resume}}
+<h1>{{.FullName}}</h1>
+<p>{{.Phone}} | {{.Email}} | {{.City}}</p>
+{{if .Summary}}<p>{{.Summary}}</p>{{end}}
+{{if .Education}}
+<h3>Образование</h3>
+<ul>
+{{range .Education}}
+  <li>{{.Institution}} - {{.Degree}} ({{.StartYear}}–{{.EndYear}})</li>
+{{end}}
+</ul>
+{{end}}
+{{if .Experience}}
+<h3>Опыт работы</h3>
+<ul>
+{{range .Experience}}
+  <li>{{.Company}} / {{.Position}} ({{.Period}})<br>{{.Description}}</li>
+{{end}}
+</ul>
+{{end}}
+{{if .Skills}}
+<h3>Навыки</h3>
+<p>{{join .Skills ", "}}</p>
+{{end}}
+{{if .Extra}}
+<h3>Дополнительно</h3>
+<p>{{.Extra}}</p>
+{{end}}
+{{end}}
+</body>
+</html>

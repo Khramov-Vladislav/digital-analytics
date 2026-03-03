@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Генератор резюме</title>
+    <style>
+        body { display: flex; font-family: Arial, sans-serif; }
+        #form { flex: 1; padding: 20px; }
+        #preview { flex: 1; padding: 20px; border-left: 1px solid #ccc; }
+        .section { margin-bottom: 15px; }
+    </style>
+    <script>
+        function addEducation() {
+            const container = document.getElementById('education-container');
+            const html = `
+            <div class="education-entry section">
+                <input type="text" name="edu_institution" placeholder="Учебное заведение" required><br>
+                <input type="text" name="edu_degree" placeholder="Специальность"><br>
+                <input type="text" name="edu_years" placeholder="Годы обучения (например 2015-2019)"><br>
+            </div>`;
+            container.insertAdjacentHTML('beforeend', html);
+        }
+        function addExperience() {
+            const container = document.getElementById('experience-container');
+            const html = `
+            <div class="experience-entry section">
+                <input type="text" name="exp_company" placeholder="Компания" required><br>
+                <input type="text" name="exp_position" placeholder="Должность"><br>
+                <input type="text" name="exp_period" placeholder="Период"><br>
+                <textarea name="exp_desc" placeholder="Обязанности"></textarea><br>
+            </div>`;
+            container.insertAdjacentHTML('beforeend', html);
+        }
+        function updatePreview() {
+            const form = document.getElementById('resume-form');
+            const data = new FormData(form);
+            fetch('/preview', { method: 'POST', body: data })
+                .then(resp => resp.text())
+                .then(html => {
+                    document.getElementById('preview').innerHTML = html;
+                });
+        }
+    </script>
+</head>
+<body>
+<div id="form">
+    <h2>Заполните резюме</h2>
+    <form id="resume-form" action="/generate" method="post" enctype="multipart/form-data" oninput="updatePreview()">
+        <div class="section">
+            <label>ФИО: <input type="text" name="fullname" maxlength="100" required></label><br>
+            <label>Телефон: <input type="text" name="phone" maxlength="50" required></label><br>
+            <label>Email: <input type="email" name="email" maxlength="100" required></label><br>
+            <label>Город: <input type="text" name="city" maxlength="100"></label><br>
+        </div>
+        <div class="section">
+            <label>Краткая информация:<br>
+            <textarea name="summary" maxlength="1000"></textarea></label>
+        </div>
+        <div class="section" id="education-container">
+            <h3>Образование</h3>
+            <!-- JS will append entries here -->
+        </div>
+        <button type="button" onclick="addEducation()">Добавить образование</button>
+        <div class="section" id="experience-container">
+            <h3>Опыт работы</h3>
+        </div>
+        <button type="button" onclick="addExperience()">Добавить опыт</button>
+        <div class="section">
+            <label>Навыки (через запятую):<br>
+            <input type="text" name="skills"></label>
+        </div>
+        <div class="section">
+            <label>Дополнительная информация:<br>
+            <textarea name="extra" maxlength="1000"></textarea></label>
+        </div>
+        <div class="section">
+            <label>Фотография: <input type="file" name="photo" accept="image/png, image/jpeg"></label>
+        </div>
+        <div class="section">
+            <label>Шаблон:
+                <select name="template">
+                    <option value="classic">Классический</option>
+                    <option value="modern">Современный</option>
+                </select>
+            </label>
+        </div>
+        <button type="submit">Сгенерировать PDF</button>
+    </form>
+</div>
+<div id="preview">
+    <!-- Preview area will be filled by JS -->
+    <em>Предпросмотр появится здесь</em>
+</div>
+</body>
+</html>
