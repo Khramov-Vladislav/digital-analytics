@@ -5,10 +5,26 @@
 <style>
     body { font-family: Arial, sans-serif; }
     .section { margin-bottom: 10px; }
+    .photo-section {
+        text-align: center;
+        margin-bottom: 15px;
+    }
+    .photo-section img {
+        max-width: 120px;
+        max-height: 150px;
+        border-radius: 8px;
+        border: 1px solid #ddd;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
 </style>
 </head>
 <body>
 {{with .Resume}}
+{{if .PhotoURL}}
+<div class="photo-section">
+    <img src="{{.PhotoURL}}" alt="Фотография">
+</div>
+{{end}}
 <h1>{{.FullName}}</h1>
 <p>{{.Phone}} | {{.Email}} | {{.City}}</p>
 {{if .Summary}}<p>{{.Summary}}</p>{{end}}
@@ -16,7 +32,11 @@
 <h3>Образование</h3>
 <ul>
 {{range .Education}}
+  {{if or .StartYear .EndYear}}
   <li>{{.Institution}} - {{.Degree}} ({{.StartYear}}–{{.EndYear}})</li>
+  {{else}}
+  <li>{{.Institution}} - {{.Degree}}</li>
+  {{end}}
 {{end}}
 </ul>
 {{end}}

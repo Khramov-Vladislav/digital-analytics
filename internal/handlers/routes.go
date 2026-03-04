@@ -1,8 +1,10 @@
 package handlers
 
 import (
+	"encoding/base64"
 	"fmt"
 	"html/template"
+	"io"
 	"log"
 	"net/http"
 	"strings"
@@ -49,22 +51,83 @@ func previewHandler(w http.ResponseWriter, r *http.Request) {
 		Template: r.FormValue("template"),
 	}
 	// parse dynamic education entries
-	for i := range r.MultipartForm.Value["edu_institution"] {
+	eduInstitutions := r.MultipartForm.Value["edu_institution"]
+	for i := range eduInstitutions {
+		var startYear, endYear string
+		if len(r.MultipartForm.Value["edu_start_year"]) > i {
+			startYear = r.MultipartForm.Value["edu_start_year"][i]
+		}
+		if len(r.MultipartForm.Value["edu_end_year"]) > i {
+			endYear = r.MultipartForm.Value["edu_end_year"][i]
+		}
+		var degree string
+		if len(r.MultipartForm.Value["edu_degree"]) > i {
+			degree = r.MultipartForm.Value["edu_degree"][i]
+		}
 		resume.Education = append(resume.Education, models.EducationEntry{
-			Institution: r.MultipartForm.Value["edu_institution"][i],
-			Degree:      r.MultipartForm.Value["edu_degree"][i],
-			StartYear:   "", // maybe further parsing
-			EndYear:     r.MultipartForm.Value["edu_years"][i],
+			Institution: eduInstitutions[i],
+			Degree:      degree,
+			StartYear:   startYear,
+			EndYear:     endYear,
 		})
 	}
-	for i := range r.MultipartForm.Value["exp_company"] {
+
+	// parse dynamic experience entries
+	expCompanies := r.MultipartForm.Value["exp_company"]
+	for i := range expCompanies {
+		var position, period, description string
+		if len(r.MultipartForm.Value["exp_position"]) > i {
+			position = r.MultipartForm.Value["exp_position"][i]
+		}
+		if len(r.MultipartForm.Value["exp_period"]) > i {
+			period = r.MultipartForm.Value["exp_period"][i]
+		}
+		if len(r.MultipartForm.Value["exp_desc"]) > i {
+			description = r.MultipartForm.Value["exp_desc"][i]
+		}
 		resume.Experience = append(resume.Experience, models.ExperienceEntry{
-			Company:     r.MultipartForm.Value["exp_company"][i],
-			Position:    r.MultipartForm.Value["exp_position"][i],
-			Period:      r.MultipartForm.Value["exp_period"][i],
-			Description: r.MultipartForm.Value["exp_desc"][i],
+			Company:     expCompanies[i],
+			Position:    position,
+			Period:      period,
+			Description: description,
 		})
 	}
+
+	// Handle photo upload - convert to Data URL for preview
+	if file, hdr, err := r.FormFile("photo"); err == nil {
+		defer file.Close()
+		resume.Photo = hdr
+
+		// Read file and convert to base64 Data URL
+		data, err := io.ReadAll(file)
+		if err == nil {
+			mimeType := hdr.Header.Get("Content-Type")
+			if mimeType == "" {
+				// Guess MIME type from filename
+				if strings.HasSuffix(strings.ToLower(hdr.Filename), ".png") {
+					mimeType = "image/png"
+				} else {
+					mimeType = "image/jpeg"
+				}
+			}
+			photoDataURL := fmt.Sprintf("data:%s;base64,%s", mimeType, base64.StdEncoding.EncodeToString(data))
+			resume.PhotoURL = template.URL(photoDataURL)
+		}
+	}
+
+	// Debug: log raw bytes/runes before normalization
+	fmt.Printf("DEBUG preview BEFORE NormalizeData - fullname bytes=%v runes=%v\n", []byte(resume.FullName), []rune(resume.FullName))
+	fmt.Printf("DEBUG preview BEFORE NormalizeData - city bytes=%v runes=%v\n", []byte(resume.City), []rune(resume.City))
+	fmt.Printf("DEBUG preview BEFORE NormalizeData - summary bytes=%v runes=%v\n", []byte(resume.Summary), []rune(resume.Summary))
+
+	// Apply formatting and normalization
+	resume.NormalizeData()
+
+	// Debug: log raw bytes/runes after normalization
+	fmt.Printf("DEBUG preview AFTER NormalizeData - fullname=%q bytes=%v runes=%v\n", resume.FullName, []byte(resume.FullName), []rune(resume.FullName))
+	fmt.Printf("DEBUG preview AFTER NormalizeData - city=%q bytes=%v runes=%v\n", resume.City, []byte(resume.City), []rune(resume.City))
+	fmt.Printf("DEBUG preview AFTER NormalizeData - summary=%q bytes=%v runes=%v\n", resume.Summary, []byte(resume.Summary), []rune(resume.Summary))
+
 	data := map[string]interface{}{"Resume": resume}
 	renderTemplate(w, "preview.html", data)
 }
@@ -90,25 +153,49 @@ func generateHandler(w http.ResponseWriter, r *http.Request) {
 		Template: r.FormValue("template"),
 	}
 	for i := range r.MultipartForm.Value["edu_institution"] {
+		var startYear, endYear, degree string
+		if len(r.MultipartForm.Value["edu_degree"]) > i {
+			degree = r.MultipartForm.Value["edu_degree"][i]
+		}
+		if len(r.MultipartForm.Value["edu_start_year"]) > i {
+			startYear = r.MultipartForm.Value["edu_start_year"][i]
+		}
+		if len(r.MultipartForm.Value["edu_end_year"]) > i {
+			endYear = r.MultipartForm.Value["edu_end_year"][i]
+		}
 		resume.Education = append(resume.Education, models.EducationEntry{
 			Institution: r.MultipartForm.Value["edu_institution"][i],
-			Degree:      r.MultipartForm.Value["edu_degree"][i],
-			StartYear:   "",
-			EndYear:     r.MultipartForm.Value["edu_years"][i],
+			Degree:      degree,
+			StartYear:   startYear,
+			EndYear:     endYear,
 		})
 	}
 	for i := range r.MultipartForm.Value["exp_company"] {
+		var position, period, description string
+		if len(r.MultipartForm.Value["exp_position"]) > i {
+			position = r.MultipartForm.Value["exp_position"][i]
+		}
+		if len(r.MultipartForm.Value["exp_period"]) > i {
+			period = r.MultipartForm.Value["exp_period"][i]
+		}
+		if len(r.MultipartForm.Value["exp_desc"]) > i {
+			description = r.MultipartForm.Value["exp_desc"][i]
+		}
 		resume.Experience = append(resume.Experience, models.ExperienceEntry{
 			Company:     r.MultipartForm.Value["exp_company"][i],
-			Position:    r.MultipartForm.Value["exp_position"][i],
-			Period:      r.MultipartForm.Value["exp_period"][i],
-			Description: r.MultipartForm.Value["exp_desc"][i],
+			Position:    position,
+			Period:      period,
+			Description: description,
 		})
 	}
 	if file, hdr, err := r.FormFile("photo"); err == nil {
 		resume.Photo = hdr
 		file.Close()
 	}
+
+	// Apply formatting and normalization
+	resume.NormalizeData()
+
 	if err := resume.Validate(); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
