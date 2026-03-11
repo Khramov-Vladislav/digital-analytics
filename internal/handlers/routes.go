@@ -18,6 +18,8 @@ func RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("/", formHandler)
 	mux.HandleFunc("/preview", previewHandler)
 	mux.HandleFunc("/generate", generateHandler)
+	mux.HandleFunc("/autocomplete/cities", autocompleteCitiesHandler)
+	mux.HandleFunc("/autocomplete/institutions", autocompleteInstitutionsHandler)
 	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 }
 
@@ -123,6 +125,12 @@ func previewHandler(w http.ResponseWriter, r *http.Request) {
 	// Apply formatting and normalization
 	resume.NormalizeData()
 
+	// Validate input and report errors in preview
+	if err := resume.Validate(); err != nil {
+		w.Write([]byte("<p style=\"color:red;\">" + err.Error() + "</p>"))
+		return
+	}
+
 	// Debug: log raw bytes/runes after normalization
 	fmt.Printf("DEBUG preview AFTER NormalizeData - fullname=%q bytes=%v runes=%v\n", resume.FullName, []byte(resume.FullName), []rune(resume.FullName))
 	fmt.Printf("DEBUG preview AFTER NormalizeData - city=%q bytes=%v runes=%v\n", resume.City, []byte(resume.City), []rune(resume.City))
@@ -226,4 +234,14 @@ func renderTemplate(w http.ResponseWriter, tmpl string, data interface{}) {
 		http.Error(w, "internal server error", http.StatusInternalServerError)
 		return
 	}
+}
+
+// autocompleteCitiesHandler handles city autocomplete requests
+func autocompleteCitiesHandler(w http.ResponseWriter, r *http.Request) {
+	models.AutocompleteCities(w, r)
+}
+
+// autocompleteInstitutionsHandler handles institutions autocomplete requests
+func autocompleteInstitutionsHandler(w http.ResponseWriter, r *http.Request) {
+	models.AutocompleteInstitutions(w, r)
 }

@@ -13,20 +13,44 @@ import (
 	"unicode"
 )
 
-// Resume holds all information needed to generate a CV.
+// list of allowed cities for autocomplete/validation
+var allowedCities = []string{
+	"Москва", "Санкт-Петербург", "Новосибирск", "Екатеринбург",
+	"Казань", "Нижний Новгород", "Челябинск", "Самара",
+	"Омск", "Ростов-на-Дону", "Уфа", "Красноярск",
+	"Воронеж", "Пермь", "Волгоград", "Краснодар",
+	"Саратов", "Тюмень", "Тольятти", "Ижевск",
+	"Барнаул", "Ульяновск", "Иркутск", "Хабаровск",
+	"Ярославль", "Владивосток", "Махачкала", "Томск",
+}
+
+func isValidCity(city string) bool {
+	city = strings.TrimSpace(city)
+	if city == "" {
+		return true // empty allowed, required constraint handled elsewhere
+	}
+	for _, c := range allowedCities {
+		if strings.EqualFold(c, city) {
+			return true
+		}
+	}
+	return false
+}
+
+// Resume holds all fields collected from the form.
 type Resume struct {
 	FullName   string
 	Phone      string
 	Email      string
 	City       string
 	Summary    string
-	Education  []EducationEntry
-	Experience []ExperienceEntry
 	Skills     []string
 	Extra      string
 	Photo      *multipart.FileHeader
 	PhotoURL   template.URL // Use template.URL to avoid HTML escaping
 	Template   string       // classic or modern
+	Education  []EducationEntry
+	Experience []ExperienceEntry
 }
 
 type EducationEntry struct {
@@ -108,20 +132,21 @@ func capitalizeCity(city string) string {
 	if len(city) == 0 {
 		return city
 	}
-	parts := strings.Split(city, "-")
-	for i, part := range parts {
-		part = strings.TrimSpace(part)
-		if len(part) > 0 {
-			rs := []rune(part)
-			first := unicode.ToUpper(rs[0])
-			rest := ""
-			if len(rs) > 1 {
-				rest = strings.ToLower(string(rs[1:]))
-			}
-			parts[i] = string(first) + rest
+	// capitalize every word, preserving spaces and hyphens
+	var b strings.Builder
+	capitalizeNext := true
+	for _, r := range city {
+		if capitalizeNext && unicode.IsLetter(r) {
+			b.WriteRune(unicode.ToUpper(r))
+			capitalizeNext = false
+		} else {
+			b.WriteRune(unicode.ToLower(r))
+		}
+		if r == ' ' || r == '-' || r == '\t' {
+			capitalizeNext = true
 		}
 	}
-	return strings.Join(parts, "-")
+	return b.String()
 }
 
 // validateYears checks if education years are logically correct
@@ -225,6 +250,9 @@ func (r *Resume) Validate() error {
 
 	if len(r.City) > 100 {
 		return errors.New("city must be <=100 characters")
+	}
+	if !validateCity(r.City) {
+		return errors.New("city is not in the allowed list")
 	}
 	if len(r.Summary) > 1000 {
 		return errors.New("summary must be <=1000 characters")

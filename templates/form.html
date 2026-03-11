@@ -109,14 +109,41 @@
         // Капитализация города
         function capitalizeCity(input) {
             let value = input.value.trim();
-            let parts = value.split('-');
-            for (let i = 0; i < parts.length; i++) {
-                parts[i] = parts[i].trim();
-                if (parts[i].length > 0) {
-                    parts[i] = parts[i].charAt(0).toUpperCase() + parts[i].slice(1).toLowerCase();
+            // Split by spaces first, then by dashes within each word
+            let words = value.split(/\s+/);
+            for (let i = 0; i < words.length; i++) {
+                let parts = words[i].split('-');
+                for (let j = 0; j < parts.length; j++) {
+                    if (parts[j].length > 0) {
+                        parts[j] = parts[j].charAt(0).toUpperCase() + parts[j].slice(1).toLowerCase();
+                    }
                 }
+                words[i] = parts.join('-');
             }
-            input.value = parts.join('-');
+            input.value = words.join(' ');
+        }
+
+        function validateCity(input) {
+            if (input.value.trim().length === 0) {
+                input.setCustomValidity('');
+                input.style.borderColor = '';
+                return;
+            }
+            // Используем запрос к серверу для валидации города
+            fetch(`/autocomplete/cities?q=${encodeURIComponent(input.value.trim())}`)
+                .then(response => response.json())
+                .then(data => {
+                    // Проверяем точное совпадение (case-insensitive)
+                    const found = data.some(c => c.toLowerCase() === input.value.trim().toLowerCase());
+                    if (!found) {
+                        input.setCustomValidity('Пожалуйста, выберите существующий город');
+                        input.style.borderColor = '#ff6b6b';
+                    } else {
+                        input.setCustomValidity('');
+                        input.style.borderColor = '';
+                    }
+                })
+                .catch(error => console.error('Error validating city:', error));
         }
 
         // Валидация годов образования
@@ -320,7 +347,7 @@
             const container = document.getElementById('education-container');
             const html = `
             <div class="education-entry section">
-                <input type="text" name="edu_institution" placeholder="Учебное заведение" required><br>
+                <input type="text" name="edu_institution" list="institutions-list" placeholder="Учебное заведение" required><br>
                 <input type="text" name="edu_degree" placeholder="Специальность"><br>
                 <input type="text" name="edu_start_year" placeholder="Начало (год)" inputmode="numeric"><br>
                 <input type="text" name="edu_end_year" placeholder="Окончание (год)" inputmode="numeric"><br>
@@ -357,6 +384,7 @@
         document.addEventListener('DOMContentLoaded', function() {
             const fullnameInput = document.querySelector('input[name="fullname"]');
             const cityInput = document.querySelector('input[name="city"]');
+            const citiesList = document.getElementById('cities-list');
             const phoneInput = document.querySelector('input[name="phone"]');
             const emailInput = document.querySelector('input[name="email"]');
             const photoInput = document.querySelector('input[name="photo"]');
@@ -368,10 +396,37 @@
                 });
             }
             
+            function populateCityDatalist() {
+                const query = cityInput.value.trim();
+                if (query.length === 0) {
+                    citiesList.innerHTML = '';
+                    return;
+                }
+                fetch(`/autocomplete/cities?q=${encodeURIComponent(query)}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        citiesList.innerHTML = '';
+                        data.forEach(city => {
+                            const option = document.createElement('option');
+                            option.value = city;
+                            citiesList.appendChild(option);
+                        });
+                    })
+                    .catch(error => console.error('Error fetching cities:', error));
+            }
+            
             if (cityInput) {
+                // ensure city suggestions available
+                populateCityDatalist();
+
                 cityInput.addEventListener('blur', function() {
                     capitalizeCity(this);
+                    validateCity(this);
                     updatePreview();
+                });
+                cityInput.addEventListener('input', function() {
+                    populateCityDatalist();
+                    validateCity(this);
                 });
             }
             
@@ -405,10 +460,18 @@
         function updateEducationListeners() {
             const educationContainer = document.getElementById('education-container');
             const entries = educationContainer.querySelectorAll('.education-entry');
+            const institutionsList = document.getElementById('institutions-list');
             
             entries.forEach((entry) => {
+                const institutionInput = entry.querySelector('input[name="edu_institution"]');
                 const startInput = entry.querySelector('input[name="edu_start_year"]');
                 const endInput = entry.querySelector('input[name="edu_end_year"]');
+                
+                if (institutionInput) {
+                    institutionInput.addEventListener('input', function() {
+                        populateInstitutionsDatalist(this.value);
+                    });
+                }
                 
                 if (endInput) {
                     endInput.addEventListener('blur', function() {
@@ -416,6 +479,30 @@
                     });
                 }
             });
+        }
+        
+        function populateInstitutionsDatalist(query) {
+            if (query.length === 0) {
+                clearInstitutionsDatalist();
+                return;
+            }
+            fetch(`/autocomplete/institutions?q=${encodeURIComponent(query)}`)
+                .then(response => response.json())
+                .then(data => {
+                    const institutionsList = document.getElementById('institutions-list');
+                    institutionsList.innerHTML = '';
+                    data.forEach(institution => {
+                        const option = document.createElement('option');
+                        option.value = institution;
+                        institutionsList.appendChild(option);
+                    });
+                })
+                .catch(error => console.error('Error fetching institutions:', error));
+        }
+        
+        function clearInstitutionsDatalist() {
+            const institutionsList = document.getElementById('institutions-list');
+            institutionsList.innerHTML = '';
         }
         
         function updateExperienceListeners() {
@@ -445,7 +532,9 @@
             
             <label>Email: <input type="email" name="email" maxlength="100" placeholder="example@mail.com" required></label>
             
-            <label>Город: <input type="text" name="city" maxlength="100" placeholder="Москва"></label>
+            <label>Город: <input type="text" name="city" maxlength="100" placeholder="Москва" list="cities-list"></label>
+            <datalist id="cities-list"></datalist>
+            <datalist id="institutions-list"></datalist>
         </div>
         <div class="section">
             <label>Краткая информация:<br>
@@ -477,8 +566,11 @@
         <div class="section">
             <label>Шаблон:
                 <select name="template">
-                    <option value="classic">Классический</option>
+                    <option value="classic">Классический (ГОСТ)</option>
+                    <option value="professional">Профессиональный</option>
                     <option value="modern">Современный</option>
+                    <option value="creative">Креативный</option>
+                    <option value="academic">Академический</option>
                 </select>
             </label>
         </div>

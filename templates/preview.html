@@ -6,15 +6,21 @@
     body { font-family: Arial, sans-serif; }
     .section { margin-bottom: 10px; }
     .photo-section {
-        text-align: center;
-        margin-bottom: 15px;
+        float: right;
+        margin: 0 0 15px 15px;
     }
     .photo-section img {
-        max-width: 120px;
-        max-height: 150px;
-        border-radius: 8px;
-        border: 1px solid #ddd;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      /* увеличиваем размер превью: примерно 200x250px */
+      max-width: 200px;
+      max-height: 250px;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .clearfix::after {
+        content: "";
+        display: table;
+        clear: both;
     }
 </style>
 </head>
@@ -26,7 +32,11 @@
 </div>
 {{end}}
 <h1>{{.FullName}}</h1>
-<p>{{.Phone}} | {{.Email}} | {{.City}}</p>
+<div class="contact-info">
+    <p>{{.Phone}}</p>
+    <p>{{.Email}}</p>
+    <p>{{.City}}</p>
+</div>
 {{if .Summary}}<p>{{.Summary}}</p>{{end}}
 {{if .Education}}
 <h3>Образование</h3>
@@ -56,6 +66,7 @@
 <h3>Дополнительно</h3>
 <p>{{.Extra}}</p>
 {{end}}
+<div class="clearfix"></div>
 {{end}}
 </body>
 </html>
