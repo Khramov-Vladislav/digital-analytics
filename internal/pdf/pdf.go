@@ -141,10 +141,10 @@ func generateClassic(r *models.Resume) ([]byte, error) {
 			pdf.MultiCell(textWidth, 4, exp.Company+" - "+exp.Position, "", "L", false)
 			pdf.SetFont(fontName, "", 9)
 			pdf.SetXY(15, pdf.GetY())
-			pdf.Cell(170, 4, exp.Period)
+			pdf.Cell(textWidth, 4, exp.Period)
 			pdf.Ln(4)
 			if len(exp.Description) > 0 {
-				pdf.MultiCell(170, 3, exp.Description, "", "L", false)
+				pdf.MultiCell(textWidth, 3, exp.Description, "", "L", false)
 			}
 			pdf.Ln(2)
 		}
@@ -156,17 +156,17 @@ func generateClassic(r *models.Resume) ([]byte, error) {
 		pdf.SetFont(fontName, "B", 11)
 		pdf.SetFillColor(230, 230, 230)
 		pdf.SetXY(15, pdf.GetY())
-		pdf.Cell(170, 6, "ОБРАЗОВАНИЕ")
+		pdf.Cell(textWidth, 6, "ОБРАЗОВАНИЕ")
 		pdf.Ln(7)
 		for _, edu := range r.Education {
 			pdf.SetFont(fontName, "B", 10)
-			pdf.MultiCell(170, 4, edu.Institution, "", "L", false)
+			pdf.MultiCell(textWidth, 4, edu.Institution, "", "L", false)
 			pdf.SetFont(fontName, "", 9)
 			pdf.SetXY(15, pdf.GetY())
-			pdf.Cell(170, 4, edu.Degree)
+			pdf.Cell(textWidth, 4, edu.Degree)
 			pdf.Ln(4)
 			pdf.SetXY(15, pdf.GetY())
-			pdf.Cell(170, 4, edu.StartYear+" - "+edu.EndYear)
+			pdf.Cell(textWidth, 4, edu.StartYear+" - "+edu.EndYear)
 			pdf.Ln(4)
 		}
 		pdf.Ln(2)
@@ -177,7 +177,7 @@ func generateClassic(r *models.Resume) ([]byte, error) {
 		pdf.SetFont(fontName, "B", 11)
 		pdf.SetFillColor(230, 230, 230)
 		pdf.SetXY(15, pdf.GetY())
-		pdf.Cell(170, 6, "НАВЫКИ")
+		pdf.Cell(textWidth, 6, "НАВЫКИ")
 		pdf.Ln(7)
 		pdf.SetFont(fontName, "", 9)
 		skillText := ""
@@ -190,7 +190,7 @@ func generateClassic(r *models.Resume) ([]byte, error) {
 				}
 			}
 		}
-		pdf.MultiCell(170, 4, skillText, "", "L", false)
+		pdf.MultiCell(textWidth, 4, skillText, "", "L", false)
 		pdf.Ln(2)
 	}
 
@@ -199,10 +199,10 @@ func generateClassic(r *models.Resume) ([]byte, error) {
 		pdf.SetFont(fontName, "B", 11)
 		pdf.SetFillColor(230, 230, 230)
 		pdf.SetXY(15, pdf.GetY())
-		pdf.Cell(170, 6, "ДОПОЛНИТЕЛЬНО")
+		pdf.Cell(textWidth, 6, "ДОПОЛНИТЕЛЬНО")
 		pdf.Ln(7)
 		pdf.SetFont(fontName, "", 9)
-		pdf.MultiCell(170, 4, r.Extra, "", "L", false)
+		pdf.MultiCell(textWidth, 4, r.Extra, "", "L", false)
 	}
 
 	var buf bytes.Buffer
@@ -240,13 +240,20 @@ func generateModern(r *models.Resume) ([]byte, error) {
 	// Contact in header (stacked vertically)
 	pdf.SetFont(fontName, "", 9)
 	pdf.SetXY(15, 32)
-	pdf.Cell(150, 4, r.Phone)
+	pdf.Cell(150, 4, "Телефон: "+r.Phone)
 	pdf.Ln(5)
 	pdf.SetX(15)
-	pdf.Cell(150, 4, r.Email)
+	pdf.Cell(150, 4, "Email: "+r.Email)
 	pdf.Ln(5)
 	pdf.SetX(15)
-	pdf.Cell(150, 4, r.City)
+	pdf.Cell(150, 4, "Город: "+r.City)
+
+	// Move main content start below header and possible photo area
+	if r.Photo != nil {
+		pdf.SetY(80)
+	} else {
+		pdf.SetY(55)
+	}
 
 	// Reset colors
 	pdf.SetTextColor(0, 0, 0)
@@ -255,7 +262,7 @@ func generateModern(r *models.Resume) ([]byte, error) {
 
 	// Summary
 	if len(r.Summary) > 0 {
-		sectionHeaderModern(pdf, fontName, "О СЕБЕ")
+		sectionHeaderModern(pdf, fontName, "КРАТКАЯ ИНФОРМАЦИЯ")
 		pdf.SetFont(fontName, "", 9)
 		pdf.MultiCell(170, 4, r.Summary, "", "L", false)
 		pdf.Ln(4)
@@ -419,6 +426,82 @@ func addPhotoToModernHeader(pdf *gofpdf.Fpdf, r *models.Resume) float64 {
 	return 60.0
 }
 
+// addPhotoToProfessionalSidebar adds a smaller photo inside the left sidebar.
+func addPhotoToProfessionalSidebar(pdf *gofpdf.Fpdf, r *models.Resume) float64 {
+	file, err := r.Photo.Open()
+	if err != nil {
+		return 0
+	}
+	defer file.Close()
+
+	tmpFile := filepath.Join(os.TempDir(), r.Photo.Filename)
+	f, err := os.Create(tmpFile)
+	if err != nil {
+		return 0
+	}
+	_, _ = io.Copy(f, file)
+	f.Close()
+
+	// Place photo in sidebar: width 40mm
+	imgW := 40.0
+	x := 10.0
+	y := 15.0
+	pdf.Image(tmpFile, x, y, imgW, 0, false, "", 0, "")
+	os.Remove(tmpFile)
+	// approximate bottom of image for layout purposes
+	return y + imgW + 10
+}
+
+// addPhotoToCreativeHeader adds a photo to the right in the creative header.
+func addPhotoToCreativeHeader(pdf *gofpdf.Fpdf, r *models.Resume) float64 {
+	file, err := r.Photo.Open()
+	if err != nil {
+		return 0
+	}
+	defer file.Close()
+
+	tmpFile := filepath.Join(os.TempDir(), r.Photo.Filename)
+	f, err := os.Create(tmpFile)
+	if err != nil {
+		return 0
+	}
+	_, _ = io.Copy(f, file)
+	f.Close()
+
+	imgW := 40.0
+	pageW, _ := pdf.GetPageSize()
+	x := pageW - imgW - 15
+	y := 8.0
+	pdf.Image(tmpFile, x, y, imgW, 0, false, "", 0, "")
+	os.Remove(tmpFile)
+	return 45.0
+}
+
+// addPhotoToAcademicHeader adds a photo below the top line on the right.
+func addPhotoToAcademicHeader(pdf *gofpdf.Fpdf, r *models.Resume) float64 {
+	file, err := r.Photo.Open()
+	if err != nil {
+		return 0
+	}
+	defer file.Close()
+
+	tmpFile := filepath.Join(os.TempDir(), r.Photo.Filename)
+	f, err := os.Create(tmpFile)
+	if err != nil {
+		return 0
+	}
+	_, _ = io.Copy(f, file)
+	f.Close()
+
+	imgW := 40.0
+	pageW, _ := pdf.GetPageSize()
+	x := pageW - imgW - 20
+	y := 42.0
+	pdf.Image(tmpFile, x, y, imgW, 0, false, "", 0, "")
+	os.Remove(tmpFile)
+	return 50.0
+}
+
 // stripSpace removes leading/trailing whitespace from a string.
 func stripSpace(s string) string {
 	var result string
@@ -442,25 +525,27 @@ func generateProfessional(r *models.Resume) ([]byte, error) {
 	pdf.SetFillColor(45, 45, 48)
 	pdf.Rect(0, 0, 70, 297, "F")
 
-	// Sidebar: Name
-	pdf.SetTextColor(255, 255, 255)
-	pdf.SetFont(fontName, "B", 14)
-	pdf.SetXY(5, 15)
-	pdf.MultiCell(60, 5, r.FullName, "", "L", false)
+	// Optional photo in sidebar
+	sidebarStartY := 15.0
+	if r.Photo != nil {
+		bottom := addPhotoToProfessionalSidebar(pdf, r)
+		sidebarStartY = bottom + 5
+	}
 
-	// Sidebar: Contact
+	// Sidebar: Contact (white text on dark background)
+	pdf.SetTextColor(255, 255, 255)
 	pdf.SetFont(fontName, "B", 9)
-	pdf.SetXY(5, 40)
+	pdf.SetXY(5, sidebarStartY)
 	pdf.Cell(60, 4, "КОНТАКТЫ")
 	pdf.Ln(5)
 
 	pdf.SetFont(fontName, "", 8)
 	pdf.SetXY(5, pdf.GetY())
-	pdf.MultiCell(60, 3, "📞 "+r.Phone, "", "L", false)
+	pdf.MultiCell(60, 3, "Телефон: "+r.Phone, "", "L", false)
 	pdf.SetXY(5, pdf.GetY())
-	pdf.MultiCell(60, 3, "✉️  "+r.Email, "", "L", false)
+	pdf.MultiCell(60, 3, "Email: "+r.Email, "", "L", false)
 	pdf.SetXY(5, pdf.GetY())
-	pdf.MultiCell(60, 3, "📍 "+r.City, "", "L", false)
+	pdf.MultiCell(60, 3, "Город: "+r.City, "", "L", false)
 
 	// Sidebar: Skills
 	if len(r.Skills) > 0 {
@@ -471,23 +556,18 @@ func generateProfessional(r *models.Resume) ([]byte, error) {
 		pdf.SetFont(fontName, "", 8)
 		for _, skill := range r.Skills {
 			pdf.SetXY(5, pdf.GetY())
-			pdf.MultiCell(60, 3, "▪ "+skill, "", "L", false)
+			pdf.MultiCell(60, 3, "• "+skill, "", "L", false)
 		}
 	}
 
-	// Main content area
+	// Main content area (no duplicate contacts here)
 	pdf.SetTextColor(0, 0, 0)
 	pdf.SetXY(75, 15)
 
-	// Header
+	// Header with name only
 	pdf.SetFont(fontName, "B", 18)
 	pdf.Cell(130, 8, r.FullName)
-	pdf.Ln(8)
-
-	pdf.SetFont(fontName, "", 9)
-	pdf.SetXY(75, pdf.GetY())
-	pdf.Cell(130, 4, r.City+" • "+r.Phone+" • "+r.Email)
-	pdf.Ln(6)
+	pdf.Ln(10)
 
 	// Summary
 	if r.Summary != "" {
@@ -589,31 +669,38 @@ func generateCreative(r *models.Resume) ([]byte, error) {
 	pdf.SetFillColor(245, 245, 245)
 	pdf.Rect(0, 5, 210, 35, "F")
 
+	// Optional photo in header (right side)
+	if r.Photo != nil {
+		addPhotoToCreativeHeader(pdf, r)
+	}
+
 	// Name
 	pdf.SetFont(fontName, "B", 22)
 	pdf.SetTextColor(255, 107, 107)
 	pdf.SetXY(20, 12)
 	pdf.Cell(170, 10, r.FullName)
 
-	// Contact info with colors
+	// Contact info with colors (wrapped block, strictly левее фотографии)
 	pdf.SetFont(fontName, "", 9)
 	pdf.SetTextColor(66, 133, 244)
 	pdf.SetXY(20, 25)
-	pdf.Cell(170, 4, "📍 "+r.City+" | 📞 "+r.Phone+" | ✉️ "+r.Email)
+	// Ширина подобрана так, чтобы текст гарантированно не заходил в область фото справа
+	pdf.MultiCell(120, 4, "Город: "+r.City+" | Телефон: "+r.Phone+" | Email: "+r.Email, "", "L", false)
 
-	pdf.SetY(42)
+	// Place main content safely below header and possible photo
+	if r.Photo != nil {
+		pdf.SetY(70)
+	} else {
+		pdf.SetY(42)
+	}
 	pdf.SetTextColor(0, 0, 0)
 
 	// Summary
 	if r.Summary != "" {
 		pdf.SetFont(fontName, "B", 11)
 		pdf.SetTextColor(255, 107, 107)
-		pdf.Cell(170, 5, "О СЕБЕ")
-		pdf.Ln(5)
-
-		pdf.SetFillColor(255, 107, 107)
-		pdf.SetLineWidth(0.2)
-		pdf.Line(20, pdf.GetY()-2, 190, pdf.GetY()-2)
+		pdf.Cell(170, 5, "КРАТКАЯ ИНФОРМАЦИЯ")
+		pdf.Ln(6)
 
 		pdf.SetTextColor(0, 0, 0)
 		pdf.SetFont(fontName, "", 10)
@@ -626,8 +713,6 @@ func generateCreative(r *models.Resume) ([]byte, error) {
 		pdf.SetFont(fontName, "B", 11)
 		pdf.SetTextColor(66, 133, 244)
 		pdf.Cell(170, 5, "ОПЫТ РАБОТЫ")
-		pdf.SetTextColor(66, 133, 244)
-		pdf.Line(20, pdf.GetY()-2, 190, pdf.GetY()-2)
 		pdf.Ln(5)
 
 		for _, exp := range r.Experience {
@@ -660,7 +745,6 @@ func generateCreative(r *models.Resume) ([]byte, error) {
 		pdf.SetFont(fontName, "B", 11)
 		pdf.SetTextColor(255, 193, 7)
 		pdf.Cell(170, 5, "ОБРАЗОВАНИЕ")
-		pdf.Line(20, pdf.GetY()-2, 190, pdf.GetY()-2)
 		pdf.Ln(5)
 
 		for _, edu := range r.Education {
@@ -684,13 +768,12 @@ func generateCreative(r *models.Resume) ([]byte, error) {
 		pdf.SetFont(fontName, "B", 11)
 		pdf.SetTextColor(40, 167, 69)
 		pdf.Cell(170, 5, "НАВЫКИ")
-		pdf.Line(20, pdf.GetY()-2, 190, pdf.GetY()-2)
 		pdf.Ln(5)
 
 		pdf.SetTextColor(0, 0, 0)
 		pdf.SetFont(fontName, "", 9)
 		for _, skill := range r.Skills {
-			pdf.Cell(80, 4, "◆ "+skill)
+			pdf.Cell(80, 4, "• "+skill)
 			if pdf.GetX() > 100 {
 				pdf.Ln(4)
 			}
@@ -712,27 +795,31 @@ func generateAcademic(r *models.Resume) ([]byte, error) {
 	// Minimalist centered header
 	pdf.SetFont(fontName, "B", 20)
 	pdf.SetXY(0, 15)
-	pdf.Cell(170, 8, r.FullName, "", 1, "C")
+	pdf.CellFormat(170, 8, r.FullName, "", 1, "C", false, 0, "")
 
 	pdf.SetFont(fontName, "", 10)
 	pdf.SetXY(0, 25)
-	pdf.Cell(170, 5, r.City, "", 1, "C")
+	pdf.CellFormat(170, 5, r.City, "", 1, "C", false, 0, "")
 
 	pdf.SetFont(fontName, "", 9)
 	pdf.SetXY(0, 31)
-	pdf.Cell(170, 4, r.Phone+" • "+r.Email, "", 1, "C")
+	pdf.CellFormat(170, 4, r.Phone+" • "+r.Email, "", 1, "C", false, 0, "")
 
-	// Elegant top and bottom lines
-	pdf.SetDrawColor(0, 0, 0)
-	pdf.SetLineWidth(0.5)
-	pdf.Line(20, 38, 190, 38)
-	pdf.Ln(8)
+	// Optional photo below header on the right
+	if r.Photo != nil {
+		addPhotoToAcademicHeader(pdf, r)
+		// Start text safely below photo
+		pdf.SetY(95)
+	} else {
+		pdf.Ln(10)
+	}
 
 	// Summary with left margin
 	if r.Summary != "" {
 		pdf.SetXY(20, pdf.GetY())
 		pdf.SetFont(fontName, "B", 10)
-		pdf.SetTextColor(51, 51, 51)
+		// Акцентный цвет заголовка, чтобы отличаться от классического шаблона
+		pdf.SetTextColor(0, 70, 140)
 		pdf.Cell(150, 5, "КРАТКАЯ ИНФОРМАЦИЯ")
 		pdf.Ln(5)
 
@@ -747,9 +834,8 @@ func generateAcademic(r *models.Resume) ([]byte, error) {
 	if len(r.Education) > 0 {
 		pdf.SetXY(20, pdf.GetY())
 		pdf.SetFont(fontName, "B", 10)
-		pdf.SetTextColor(51, 51, 51)
+		pdf.SetTextColor(0, 70, 140)
 		pdf.Cell(150, 5, "ОБРАЗОВАНИЕ")
-		pdf.Line(20, pdf.GetY()+2, 190, pdf.GetY()+2)
 		pdf.Ln(5)
 
 		for _, edu := range r.Education {
@@ -760,7 +846,8 @@ func generateAcademic(r *models.Resume) ([]byte, error) {
 			pdf.Ln(4)
 
 			pdf.SetXY(25, pdf.GetY())
-			pdf.SetFont(fontName, "", 9)
+			// Делаем степень курсивом, чтобы визуально отделить от классики
+			pdf.SetFont(fontName, "I", 9)
 			degree := edu.Degree
 			if edu.StartYear != "" || edu.EndYear != "" {
 				degree += " (" + edu.StartYear + " - " + edu.EndYear + ")"
@@ -775,9 +862,8 @@ func generateAcademic(r *models.Resume) ([]byte, error) {
 	if len(r.Experience) > 0 {
 		pdf.SetXY(20, pdf.GetY())
 		pdf.SetFont(fontName, "B", 10)
-		pdf.SetTextColor(51, 51, 51)
+		pdf.SetTextColor(0, 70, 140)
 		pdf.Cell(150, 5, "ОПЫТ РАБОТЫ")
-		pdf.Line(20, pdf.GetY()+2, 190, pdf.GetY()+2)
 		pdf.Ln(5)
 
 		for _, exp := range r.Experience {
@@ -807,9 +893,8 @@ func generateAcademic(r *models.Resume) ([]byte, error) {
 	if len(r.Skills) > 0 {
 		pdf.SetXY(20, pdf.GetY())
 		pdf.SetFont(fontName, "B", 10)
-		pdf.SetTextColor(51, 51, 51)
+		pdf.SetTextColor(0, 70, 140)
 		pdf.Cell(150, 5, "КЛЮЧЕВЫЕ НАВЫКИ")
-		pdf.Line(20, pdf.GetY()+2, 190, pdf.GetY()+2)
 		pdf.Ln(5)
 
 		pdf.SetFont(fontName, "", 9)
