@@ -52,48 +52,6 @@ func previewHandler(w http.ResponseWriter, r *http.Request) {
 		Extra:    r.FormValue("extra"),
 		Template: r.FormValue("template"),
 	}
-	// parse dynamic education entries
-	eduInstitutions := r.MultipartForm.Value["edu_institution"]
-	for i := range eduInstitutions {
-		var startYear, endYear string
-		if len(r.MultipartForm.Value["edu_start_year"]) > i {
-			startYear = r.MultipartForm.Value["edu_start_year"][i]
-		}
-		if len(r.MultipartForm.Value["edu_end_year"]) > i {
-			endYear = r.MultipartForm.Value["edu_end_year"][i]
-		}
-		var degree string
-		if len(r.MultipartForm.Value["edu_degree"]) > i {
-			degree = r.MultipartForm.Value["edu_degree"][i]
-		}
-		resume.Education = append(resume.Education, models.EducationEntry{
-			Institution: eduInstitutions[i],
-			Degree:      degree,
-			StartYear:   startYear,
-			EndYear:     endYear,
-		})
-	}
-
-	// parse dynamic experience entries
-	expCompanies := r.MultipartForm.Value["exp_company"]
-	for i := range expCompanies {
-		var position, period, description string
-		if len(r.MultipartForm.Value["exp_position"]) > i {
-			position = r.MultipartForm.Value["exp_position"][i]
-		}
-		if len(r.MultipartForm.Value["exp_period"]) > i {
-			period = r.MultipartForm.Value["exp_period"][i]
-		}
-		if len(r.MultipartForm.Value["exp_desc"]) > i {
-			description = r.MultipartForm.Value["exp_desc"][i]
-		}
-		resume.Experience = append(resume.Experience, models.ExperienceEntry{
-			Company:     expCompanies[i],
-			Position:    position,
-			Period:      period,
-			Description: description,
-		})
-	}
 
 	// Handle photo upload - convert to Data URL for preview
 	if file, hdr, err := r.FormFile("photo"); err == nil {
@@ -160,40 +118,53 @@ func generateHandler(w http.ResponseWriter, r *http.Request) {
 		Extra:    r.FormValue("extra"),
 		Template: r.FormValue("template"),
 	}
-	for i := range r.MultipartForm.Value["edu_institution"] {
-		var startYear, endYear, degree string
-		if len(r.MultipartForm.Value["edu_degree"]) > i {
-			degree = r.MultipartForm.Value["edu_degree"][i]
+	for i := range r.MultipartForm.Value["edu_title"] {
+		title := r.MultipartForm.Value["edu_title"][i]
+		if title == "" {
+			continue
 		}
-		if len(r.MultipartForm.Value["edu_start_year"]) > i {
-			startYear = r.MultipartForm.Value["edu_start_year"][i]
-		}
-		if len(r.MultipartForm.Value["edu_end_year"]) > i {
-			endYear = r.MultipartForm.Value["edu_end_year"][i]
+		achievements := []string{}
+		if len(r.MultipartForm.Value["edu_achievements"]) > i {
+			bullets := strings.Split(r.MultipartForm.Value["edu_achievements"][i], "\n")
+			for _, bullet := range bullets {
+				bullet = strings.TrimSpace(bullet)
+				if bullet != "" {
+					achievements = append(achievements, bullet)
+				}
+			}
 		}
 		resume.Education = append(resume.Education, models.EducationEntry{
-			Institution: r.MultipartForm.Value["edu_institution"][i],
-			Degree:      degree,
-			StartYear:   startYear,
-			EndYear:     endYear,
+			Title:        title,
+			Achievements: achievements,
 		})
 	}
-	for i := range r.MultipartForm.Value["exp_company"] {
-		var position, period, description string
-		if len(r.MultipartForm.Value["exp_position"]) > i {
-			position = r.MultipartForm.Value["exp_position"][i]
+	for i := range r.MultipartForm.Value["exp_position"] {
+		position := r.MultipartForm.Value["exp_position"][i]
+		if position == "" {
+			continue
+		}
+		var company, period string
+		if len(r.MultipartForm.Value["exp_company"]) > i {
+			company = r.MultipartForm.Value["exp_company"][i]
 		}
 		if len(r.MultipartForm.Value["exp_period"]) > i {
 			period = r.MultipartForm.Value["exp_period"][i]
 		}
-		if len(r.MultipartForm.Value["exp_desc"]) > i {
-			description = r.MultipartForm.Value["exp_desc"][i]
+		achievements := []string{}
+		if len(r.MultipartForm.Value["exp_achievements"]) > i {
+			bullets := strings.Split(r.MultipartForm.Value["exp_achievements"][i], "\n")
+			for _, bullet := range bullets {
+				bullet = strings.TrimSpace(bullet)
+				if bullet != "" {
+					achievements = append(achievements, bullet)
+				}
+			}
 		}
 		resume.Experience = append(resume.Experience, models.ExperienceEntry{
-			Company:     r.MultipartForm.Value["exp_company"][i],
-			Position:    position,
-			Period:      period,
-			Description: description,
+			Position:     position,
+			Company:      company,
+			Period:       period,
+			Achievements: achievements,
 		})
 	}
 	if file, hdr, err := r.FormFile("photo"); err == nil {

@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 	"unicode"
+	"unicode/utf8"
 )
 
 // list of allowed cities for autocomplete/validation
@@ -54,17 +55,15 @@ type Resume struct {
 }
 
 type EducationEntry struct {
-	Institution string
-	Degree      string
-	StartYear   string
-	EndYear     string
+	Title        string   // "Санкт-Петербургский государственный университет, факультет прикладной математики (2012–2016)"
+	Achievements []string // optional additional bullet points
 }
 
 type ExperienceEntry struct {
-	Company     string
-	Position    string
-	Period      string
-	Description string
+	Position     string   // "Senior Full-Stack Developer"
+	Company      string   // "ООО TechnoSoft"
+	Period       string   // "Март 2021 — настоящее время"
+	Achievements []string // list of accomplishments/responsibilities
 }
 
 // isValidEmail checks if email format is correct
@@ -230,7 +229,7 @@ func validateWorkPeriod(period string) error {
 
 // Validate performs basic checks on the resume fields according to constraints.
 func (r *Resume) Validate() error {
-	if len(r.FullName) == 0 || len(r.FullName) > 100 {
+	if utf8.RuneCountInString(r.FullName) == 0 || utf8.RuneCountInString(r.FullName) > 100 {
 		return errors.New("full name is required and must be <=100 characters")
 	}
 
@@ -256,15 +255,6 @@ func (r *Resume) Validate() error {
 	}
 	if len(r.Summary) > 1000 {
 		return errors.New("summary must be <=1000 characters")
-	}
-
-	// Validate education years
-	for _, edu := range r.Education {
-		if edu.StartYear != "" || edu.EndYear != "" {
-			if err := validateYears(edu.StartYear, edu.EndYear); err != nil {
-				return err
-			}
-		}
 	}
 
 	// Validate work period

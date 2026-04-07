@@ -347,10 +347,9 @@
             const container = document.getElementById('education-container');
             const html = `
             <div class="education-entry section">
-                <input type="text" name="edu_institution" list="institutions-list" placeholder="Учебное заведение" required><br>
-                <input type="text" name="edu_degree" placeholder="Специальность"><br>
-                <input type="text" name="edu_start_year" placeholder="Начало (год)" inputmode="numeric"><br>
-                <input type="text" name="edu_end_year" placeholder="Окончание (год)" inputmode="numeric"><br>
+                <input type="text" name="edu_title" list="institutions-list" placeholder="Образование (например: МГУ, факультет вычислительной математики и кибернетики (2015–2019))" required><br>
+                <textarea name="edu_achievements" placeholder="Дополнительная информация (каждая строка = один пункт)"></textarea><br>
+                <button type="button" onclick="removeEducation(this)">Удалить образование</button>
             </div>`;
             container.insertAdjacentHTML('beforeend', html);
             updateEducationListeners();
@@ -360,13 +359,50 @@
             const container = document.getElementById('experience-container');
             const html = `
             <div class="experience-entry section">
-                <input type="text" name="exp_company" placeholder="Компания" required><br>
-                <input type="text" name="exp_position" placeholder="Должность"><br>
-                <input type="text" name="exp_period" placeholder="Период (например 2015-2020 или 2018-н.в.)"><br>
-                <textarea name="exp_desc" placeholder="Обязанности"></textarea><br>
+                <input type="text" name="exp_position" placeholder="Должность (например Senior Developer)" required><br>
+                <input type="text" name="exp_company" placeholder="Компания"><br>
+                <input type="text" name="exp_period" placeholder="Период (например Март 2021 — настоящее время)"><br>
+                <textarea name="exp_achievements" placeholder="Достижения и обязанности (каждая строка = один пункт)"></textarea><br>
+                <button type="button" onclick="removeExperience(this)">Удалить опыт</button>
             </div>`;
             container.insertAdjacentHTML('beforeend', html);
             updateExperienceListeners();
+        }
+        
+        function removeEducation(button) {
+            button.closest('.education-entry').remove();
+            updatePreview();
+        }
+        
+        function removeExperience(button) {
+            button.closest('.experience-entry').remove();
+            updatePreview();
+        }
+        
+        function validateFormBeforeSubmit() {
+            // Проверяем образование
+            const educationEntries = document.querySelectorAll('.education-entry');
+            for (let entry of educationEntries) {
+                const titleInput = entry.querySelector('input[name="edu_title"]');
+                if (!titleInput || !titleInput.value.trim()) {
+                    alert('Пожалуйста, заполните название образования');
+                    titleInput?.focus();
+                    return false;
+                }
+            }
+            
+            // Проверяем опыт работы
+            const experienceEntries = document.querySelectorAll('.experience-entry');
+            for (let entry of experienceEntries) {
+                const positionInput = entry.querySelector('input[name="exp_position"]');
+                if (!positionInput || !positionInput.value.trim()) {
+                    alert('Пожалуйста, заполните должность');
+                    positionInput?.focus();
+                    return false;
+                }
+            }
+            
+            return true;
         }
         
         function updatePreview() {
@@ -524,7 +560,7 @@
 <body>
 <div id="form">
     <h2>Заполните резюме</h2>
-    <form id="resume-form" action="/generate" method="post" enctype="multipart/form-data" oninput="updatePreview()">
+    <form id="resume-form" action="/generate" method="post" enctype="multipart/form-data" oninput="updatePreview()" onsubmit="return validateFormBeforeSubmit()">
         <div class="section">
             <label>ФИО: <input type="text" name="fullname" maxlength="100" placeholder="Иван Иванов" required></label>
             
@@ -570,7 +606,6 @@
                     <option value="professional">Профессиональный</option>
                     <option value="modern">Современный</option>
                     <option value="creative">Креативный</option>
-                    <option value="academic">Академический</option>
                 </select>
             </label>
         </div>
