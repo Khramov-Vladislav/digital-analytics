@@ -264,7 +264,12 @@ func generateModern(r *models.Resume) ([]byte, error) {
 	if len(r.Summary) > 0 {
 		sectionHeaderModern(pdf, fontName, "КРАТКАЯ ИНФОРМАЦИЯ")
 		pdf.SetFont(fontName, "", 9)
-		pdf.MultiCell(170, 4, r.Summary, "", "L", false)
+		// Limit width if photo is present to avoid overlay
+		summaryWidth := 170.0
+		if r.Photo != nil {
+			summaryWidth = 120.0 // Narrower width when photo is present
+		}
+		pdf.MultiCell(summaryWidth, 4, r.Summary, "", "L", false)
 		pdf.Ln(4)
 	}
 
@@ -598,7 +603,7 @@ func generateProfessional(r *models.Resume) ([]byte, error) {
 		pdf.SetFont(fontName, "B", 10)
 		pdf.SetTextColor(45, 45, 48)
 		pdf.Cell(130, 4, "ОБРАЗОВАНИЕ")
-		pdf.Ln(3)
+		pdf.Ln(6)
 		pdf.SetTextColor(0, 0, 0)
 
 		for _, edu := range r.Education {
@@ -709,7 +714,12 @@ func generateCreative(r *models.Resume) ([]byte, error) {
 		pdf.Ln(6)
 		pdf.SetTextColor(0, 0, 0)
 		pdf.SetFont(fontName, "", 9)
-		pdf.MultiCell(170, 4, r.Summary, "", "L", false)
+		// Limit width if photo is present to avoid overlay
+		summaryWidth := 170.0
+		if r.Photo != nil {
+			summaryWidth = 120.0 // Narrower width when photo is present
+		}
+		pdf.MultiCell(summaryWidth, 4, r.Summary, "", "L", false)
 		pdf.Ln(3)
 	}
 
