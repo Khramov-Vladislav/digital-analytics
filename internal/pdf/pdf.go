@@ -690,7 +690,7 @@ func generateCreative(r *models.Resume) ([]byte, error) {
 
 	// Move main content start below header
 	if hasPhoto {
-		pdf.SetY(75)
+		pdf.SetY(95)
 	} else {
 		pdf.SetY(52)
 	}
