@@ -87,6 +87,179 @@
         .error-message.show {
             display: block;
         }
+
+        /* === Preview template styles === */
+        .template-classic .preview-root,
+        .template-modern .preview-root,
+        .template-professional .preview-root,
+        .template-creative .preview-root {
+            padding: 20px;
+            font-family: Arial, sans-serif;
+        }
+        .section { margin-bottom: 10px; }
+        .photo-section img {
+            max-width: 160px;
+            max-height: 200px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .clearfix::after {
+            content: "";
+            display: table;
+            clear: both;
+        }
+        .contact-info p {
+            margin: 2px 0;
+            font-size: 13px;
+        }
+
+        /* === Classic: ГОСТ-стиль с правой фотографией === */
+        .template-classic .preview-root {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .template-classic .photo-section {
+            float: right;
+            margin: 0 0 15px 15px;
+        }
+        .template-classic h1 {
+            margin-top: 0;
+        }
+        .template-classic h3 {
+            background: #e6e6e6;
+            padding: 4px 6px;
+            font-size: 13px;
+        }
+
+        /* === Modern: цветной хедер + контент ниже === */
+        .template-modern .preview-root {
+            max-width: 900px;
+            margin: 0 auto;
+            border: 1px solid #eee;
+        }
+        .template-modern .header {
+            background: rgb(30,90,150);
+            color: #fff;
+            padding: 16px 20px 10px 20px;
+            position: relative;
+        }
+        .template-modern .header .photo-section {
+            position: absolute;
+            right: 20px;
+            top: 10px;
+            margin: 0;
+        }
+        .template-modern h1 {
+            margin: 0 0 6px 0;
+        }
+        .template-modern .contact-info p {
+            margin: 1px 0;
+        }
+        .template-modern .content {
+            padding: 16px 20px 20px 20px;
+        }
+        .template-modern h3 {
+            color: rgb(30,90,150);
+            margin-bottom: 4px;
+            font-size: 14px;
+        }
+
+        /* === Professional: левая тёмная колонка === */
+        .template-professional .preview-root {
+            display: flex;
+            max-width: 900px;
+            margin: 0 auto;
+            border: 1px solid #eee;
+        }
+        .template-professional .sidebar {
+            width: 260px;
+            background: rgb(45,45,48);
+            color: #fff;
+            padding: 16px;
+            box-sizing: border-box;
+        }
+        .template-professional .sidebar .photo-section {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        .template-professional .sidebar h3 {
+            font-size: 12px;
+            margin: 12px 0 4px 0;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .template-professional .sidebar .contact-info p {
+            font-size: 12px;
+        }
+        .template-professional .main {
+            flex: 1;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .template-professional .main h1 {
+            margin-top: 0;
+        }
+
+        /* === Creative: цветные полосы сверху === */
+        .template-creative .preview-root {
+            max-width: 900px;
+            margin: 0 auto;
+            border: 1px solid #eee;
+            box-sizing: border-box;
+        }
+        .template-creative .top-bars {
+            display: flex;
+            height: 4px;
+        }
+        .template-creative .top-bars div:nth-child(1) { background: rgb(255,107,107); flex: 1; }
+        .template-creative .top-bars div:nth-child(2) { background: rgb(255,193,7); flex: 1; }
+        .template-creative .top-bars div:nth-child(3) { background: rgb(66,133,244); flex: 1; }
+        .template-creative .header {
+            background: #f8fafb;
+            padding: 16px 20px 10px 20px;
+            overflow: hidden;
+        }
+        .template-creative .header .photo-section {
+            float: left;
+            margin: 0 15px 10px 0;
+            max-width: 120px;
+        }
+        .template-creative .header .photo-section img {
+            max-width: 100%;
+            border-radius: 4px;
+        }
+        .template-creative h1 {
+            margin: 0 0 6px 0;
+            color: rgb(255,107,107);
+            clear: none;
+        }
+        .template-creative .contact-info {
+            margin-top: 4px;
+            clear: none;
+        }
+        .template-creative .contact-info p {
+            color: rgb(66,133,244);
+            margin: 1px 0;
+            font-size: 13px;
+            clear: none;
+        }
+        .template-creative .content {
+            padding: 16px 20px 20px 20px;
+            clear: both;
+        }
+        .template-creative h3 {
+            margin-bottom: 6px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .template-creative .summary-title { color: rgb(255,107,107); }
+        .template-creative .experience-title { color: rgb(66,133,244); }
+        .template-creative .education-title { color: rgb(255,193,7); }
+        .template-creative .skills-title { color: rgb(40,167,69); }
+        .template-creative .extra-title { color: rgb(255,107,107); }
     </style>
     <script>
         // Капитализация ФИО с поддержкой особых случаев
@@ -180,55 +353,79 @@
 
         // Валидация периода работы
         function validateWorkPeriod(input) {
-            let value = input.value.trim();
-            let currentYear = new Date().getFullYear();
+            const value = input.value.trim();
+            const currentYear = new Date().getFullYear();
             
-            if (value === '') return true;
-            
-            // Check for "н.в." format
-            if (value.includes('н.в.')) {
-                let parts = value.split('-');
-                if (parts.length === 2) {
-                    let startYear = parseInt(parts[0].trim());
-                    if (isNaN(startYear) || startYear > currentYear) {
-                        input.style.borderColor = '#ff6b6b';
-                        input.title = 'Год начала работы должен быть валидным и не в будущем';
-                        return false;
-                    }
-                    input.style.borderColor = '';
-                    input.title = '';
-                    return true;
-                }
+            if (value === '') {
+                input.style.borderColor = '';
+                input.title = '';
+                return true;
             }
-            
-            // Regular format: YYYY-YYYY
-            let parts = value.split('-');
-            if (parts.length === 2) {
-                let start = parseInt(parts[0].trim());
-                let end = parseInt(parts[1].trim());
-                if (isNaN(start) || isNaN(end)) {
-                    input.style.borderColor = '#ff6b6b';
-                    input.title = 'Используйте формат YYYY-YYYY или YYYY-н.в.';
-                    return false;
-                }
-                if (start >= end) {
-                    input.style.borderColor = '#ff6b6b';
-                    input.title = 'Год начала должен быть меньше года окончания';
-                    return false;
-                }
-                if (end > currentYear) {
-                    input.style.borderColor = '#ff6b6b';
-                    input.title = 'Год окончания не может быть в будущем';
-                    return false;
+
+            // Check for "месяц YYYY - н.в." or "месяц YYYY - настоящее время" format
+            if (value.includes('н.в.') || value.includes('настоящее время')) {
+                const parts = value.split('-');
+                if (parts.length >= 2) {
+                    const startPart = parts[0].trim();
+                    const yearMatch = startPart.match(/\d{4}/);
+                    if (yearMatch) {
+                        const startYear = parseInt(yearMatch[0]);
+                        if (startYear > currentYear) {
+                            input.style.borderColor = '#ff6b6b';
+                            input.title = 'Год начала работы не должен быть в будущем';
+                            return false;
+                        }
+                    }
                 }
                 input.style.borderColor = '';
                 input.title = '';
                 return true;
             }
+
+            // Check for "YYYY - YYYY" format
+            if (value.includes('-')) {
+                const parts = value.split('-');
+                if (parts.length === 2) {
+                    const startYear = parseInt(parts[0].trim());
+                    const endYear = parseInt(parts[1].trim());
+                    if (isNaN(startYear) || isNaN(endYear)) {
+                        input.style.borderColor = '#ff6b6b';
+                        input.title = 'Годы должны быть числами в формате YYYY - YYYY';
+                        return false;
+                    }
+                    if (startYear >= endYear) {
+                        input.style.borderColor = '#ff6b6b';
+                        input.title = 'Год начала должен быть меньше года окончания';
+                        return false;
+                    }
+                    if (endYear > currentYear) {
+                        input.style.borderColor = '#ff6b6b';
+                        input.title = 'Год окончания не может быть в будущем';
+                        return false;
+                    }
+                } else {
+                    input.style.borderColor = '#ff6b6b';
+                    input.title = 'Используйте формат YYYY - YYYY или Месяц YYYY - н.в.';
+                    return false;
+                }
+            } else {
+                // Single year format
+                const year = parseInt(value);
+                if (isNaN(year)) {
+                    input.style.borderColor = '#ff6b6b';
+                    input.title = 'Год должен быть числом';
+                    return false;
+                }
+                if (year > currentYear) {
+                    input.style.borderColor = '#ff6b6b';
+                    input.title = 'Год не может быть в будущем';
+                    return false;
+                }
+            }
             
-            input.style.borderColor = '#ff6b6b';
-            input.title = 'Используйте формат YYYY-YYYY или YYYY-н.в.';
-            return false;
+            input.style.borderColor = '';
+            input.title = '';
+            return true;
         }
 
         // Форматирование телефонного номера в международном формате
@@ -296,6 +493,71 @@
             }
         }
 
+        // Валидация ФИО
+        function validateFullName(input) {
+            const value = input.value.trim();
+            const isValid = value.length > 0 && value.length <= 100;
+            
+            if (!isValid && value.length > 0) {
+                input.style.borderColor = '#ff6b6b';
+                input.title = 'ФИО должно быть 1-100 символов';
+            } else {
+                input.style.borderColor = '';
+                input.title = '';
+            }
+            return isValid;
+        }
+
+        // Валидация города
+        function validateCityField(input) {
+            const value = input.value.trim();
+            if (value.length === 0) {
+                input.style.borderColor = '';
+                input.title = '';
+                return true;
+            }
+            if (value.length > 100) {
+                input.style.borderColor = '#ff6b6b';
+                input.title = 'Город должен быть <=100 символов';
+                return false;
+            }
+            input.style.borderColor = '';
+            input.title = '';
+            return true;
+        }
+
+        // Валидация описания (Summary, Extra)
+        function validateDescription(input) {
+            const value = input.value.trim();
+            const maxLength = input.name === 'summary' ? 1000 : 1000;
+            const isValid = value.length === 0 || value.length <= maxLength;
+            
+            if (!isValid) {
+                input.style.borderColor = '#ff6b6b';
+                input.title = `Максимум ${maxLength} символов (сейчас: ${value.length})`;
+            } else {
+                input.style.borderColor = '';
+                input.title = '';
+            }
+            return isValid;
+        }
+
+        // Валидация навыков
+        function validateSkills(input) {
+            const value = input.value.trim();
+            const maxLength = 1000;
+            const isValid = value.length === 0 || value.length <= maxLength;
+            
+            if (!isValid) {
+                input.style.borderColor = '#ff6b6b';
+                input.title = `Максимум ${maxLength} символов`;
+            } else {
+                input.style.borderColor = '';
+                input.title = '';
+            }
+            return isValid;
+        }
+
         // Обработка загруженной фотографии
         function handlePhotoUpload(input) {
             const file = input.files[0];
@@ -347,8 +609,8 @@
             const container = document.getElementById('education-container');
             const html = `
             <div class="education-entry section">
-                <input type="text" name="edu_title" list="institutions-list" placeholder="Образование (например: МГУ, факультет вычислительной математики и кибернетики (2015–2019))" required><br>
-                <textarea name="edu_achievements" placeholder="Дополнительная информация (каждая строка = один пункт)"></textarea><br>
+                <input type="text" name="edu_school" placeholder="Образование (например: МГУ, факультет прикладной математики)" required><br>
+                <input type="text" name="edu_year" placeholder="Год получения (например: Март 2021 - настоящее время или 2015 - 2019)" required><br>
                 <button type="button" onclick="removeEducation(this)">Удалить образование</button>
             </div>`;
             container.insertAdjacentHTML('beforeend', html);
@@ -379,39 +641,179 @@
             updatePreview();
         }
         
-        function validateFormBeforeSubmit() {
-            // Проверяем образование
-            const educationEntries = document.querySelectorAll('.education-entry');
-            for (let entry of educationEntries) {
-                const titleInput = entry.querySelector('input[name="edu_title"]');
-                if (!titleInput || !titleInput.value.trim()) {
-                    alert('Пожалуйста, заполните название образования');
-                    titleInput?.focus();
-                    return false;
+        function handleFormSubmit(event) {
+            event.preventDefault();
+            
+            // Валидируем ВСЕ поля перед отправкой
+            const form = document.getElementById('resume-form');
+            const fullnameInput = form.querySelector('input[name="fullname"]');
+            const phoneInput = form.querySelector('input[name="phone"]');
+            const emailInput = form.querySelector('input[name="email"]');
+            const cityInput = form.querySelector('input[name="city"]');
+            const summaryInput = form.querySelector('textarea[name="summary"]');
+            const skillsInput = form.querySelector('input[name="skills"]');
+            const extraInput = form.querySelector('textarea[name="extra"]');
+            
+            let errors = [];
+            
+            // Проверяем ФИО
+            if (!fullnameInput || !fullnameInput.value.trim()) {
+                errors.push('ФИО обязательно');
+                fullnameInput && (fullnameInput.style.borderColor = '#ff6b6b');
+            } else if (fullnameInput.value.trim().length > 100) {
+                errors.push('ФИО не должно превышать 100 символов');
+                fullnameInput.style.borderColor = '#ff6b6b';
+            } else {
+                fullnameInput.style.borderColor = '';
+            }
+            
+            // Проверяем Телефон
+            if (!phoneInput || !phoneInput.value.trim()) {
+                errors.push('Телефон обязателен');
+                phoneInput && (phoneInput.style.borderColor = '#ff6b6b');
+            } else {
+                const digits = phoneInput.value.replace(/\D/g, '');
+                if (digits.length < 10) {
+                    errors.push('Номер телефона должен содержать минимум 10 цифр');
+                    phoneInput.style.borderColor = '#ff6b6b';
+                } else {
+                    phoneInput.style.borderColor = '';
                 }
             }
             
-            // Проверяем опыт работы
-            const experienceEntries = document.querySelectorAll('.experience-entry');
-            for (let entry of experienceEntries) {
-                const positionInput = entry.querySelector('input[name="exp_position"]');
-                if (!positionInput || !positionInput.value.trim()) {
-                    alert('Пожалуйста, заполните должность');
-                    positionInput?.focus();
-                    return false;
+            // Проверяем Email
+            if (!emailInput || !emailInput.value.trim()) {
+                errors.push('Email обязателен');
+                emailInput && (emailInput.style.borderColor = '#ff6b6b');
+            } else {
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(emailInput.value)) {
+                    errors.push('Email имеет неверный формат');
+                    emailInput.style.borderColor = '#ff6b6b';
+                } else {
+                    emailInput.style.borderColor = '';
                 }
             }
             
-            return true;
+            // Проверяем Город (ОБЯЗАТЕЛЬНО как email и телефон)
+            if (!cityInput || !cityInput.value.trim()) {
+                errors.push('Город обязателен');
+                cityInput && (cityInput.style.borderColor = '#ff6b6b');
+                const errorSpan = cityInput && cityInput.parentElement.querySelector('.city-error');
+                if (errorSpan) errorSpan.textContent = '❌ Город обязателен';
+            } else if (cityInput.value.trim().length > 100) {
+                errors.push('Город не должен превышать 100 символов');
+                cityInput.style.borderColor = '#ff6b6b';
+                const errorSpan = cityInput.parentElement.querySelector('.city-error');
+                if (errorSpan) errorSpan.textContent = '❌ Максимум 100 символов';
+            } else {
+                cityInput.style.borderColor = '';
+                const errorSpan = cityInput.parentElement.querySelector('.city-error');
+                if (errorSpan) errorSpan.textContent = '';
+            }
+            
+            // Если для города есть проверка на валидность из сервера, показываем её
+            // Город НЕ блокирует отправку, только показывает уведомление
+            
+            // Проверяем описания (необязательно но если есть - проверяем длину)
+            if (summaryInput && summaryInput.value.length > 1000) {
+                errors.push('Краткая информация не должна превышать 1000 символов');
+                summaryInput.style.borderColor = '#ff6b6b';
+            } else if (summaryInput) {
+                summaryInput.style.borderColor = '';
+            }
+            
+            if (skillsInput && skillsInput.value.length > 1000) {
+                errors.push('Навыки не должны превышать 1000 символов');
+                skillsInput.style.borderColor = '#ff6b6b';
+            } else if (skillsInput) {
+                skillsInput.style.borderColor = '';
+            }
+            
+            if (extraInput && extraInput.value.length > 1000) {
+                errors.push('Доп. информация не должна превышать 1000 символов');
+                extraInput.style.borderColor = '#ff6b6b';
+            } else if (extraInput) {
+                extraInput.style.borderColor = '';
+            }
+            
+            // Если есть ошибки - показываем и не отправляем
+            if (errors.length > 0) {
+                alert('❌ Пожалуйста исправьте ошибки:\n\n' + errors.join('\n'));
+                return;
+            }
+            
+            // Все хорошо - отправляем
+            const data = new FormData(form);
+            fetch('/generate', { method: 'POST', body: data })
+                .then(resp => {
+                    // Проверяем если это JSON ошибка
+                    if (resp.status === 400) {
+                        return resp.json().then(json => {
+                            throw new Error(json.error);
+                        });
+                    }
+                    if (!resp.ok) {
+                        throw new Error('Ошибка при генерировании PDF');
+                    }
+                    // Если успешно, скачиваем PDF
+                    return resp.blob().then(blob => {
+                        const url = window.URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = 'resume.pdf';
+                        document.body.appendChild(a);
+                        a.click();
+                        window.URL.revokeObjectURL(url);
+                        document.body.removeChild(a);
+                    });
+                })
+                .catch(err => {
+                    const errorMsg = err.message;
+                    // Если ошибка города - показываем красное поле вместо alert
+                    if (errorMsg.includes('city') || errorMsg.includes('город')) {
+                        const cityInput = form.querySelector('input[name="city"]');
+                        if (cityInput) {
+                            cityInput.style.borderColor = '#ff6b6b';
+                            const errorSpan = cityInput.parentElement.querySelector('.city-error');
+                            if (errorSpan) {
+                                errorSpan.textContent = '❌ ' + errorMsg;
+                            }
+                            cityInput.focus();
+                        }
+                    } else {
+                        // Для других ошибок - показываем alert
+                        alert('❌ Ошибка при генерировании PDF:\n\n' + err.message);
+                    }
+                });
+        }
+
+        // Дебаунс для updatePreview - избегаем слишком частых обновлений
+        let previewTimeout;
+        function debouncedUpdatePreview() {
+            clearTimeout(previewTimeout);
+            previewTimeout = setTimeout(updatePreview, 300);
         }
         
         function updatePreview() {
             const form = document.getElementById('resume-form');
             const data = new FormData(form);
+            const previewDiv = document.getElementById('preview');
+            const template = form.elements['template'].value;
+            
+            // Очищаем превью перед обновлением чтобы избежать дублирования
+            previewDiv.innerHTML = '';
+            
+            // Применяем класс шаблона к контейнеру
+            previewDiv.className = `template-${template}`;
+            
             fetch('/preview', { method: 'POST', body: data })
                 .then(resp => resp.text())
                 .then(html => {
-                    document.getElementById('preview').innerHTML = html;
+                    // Извлекаем только содержимое body, игнорируя <body> теги
+                    const bodyMatch = html.match(/<body[^>]*>([\s\S]*)<\/body>/);
+                    const bodyContent = bodyMatch ? bodyMatch[1] : html;
+                    previewDiv.innerHTML = bodyContent;
                 })
                 .catch(err => console.log('Preview error:', err));
         }
@@ -428,6 +830,7 @@
             if (fullnameInput) {
                 fullnameInput.addEventListener('blur', function() {
                     capitalizeFullName(this);
+                    validateFullName(this);
                     updatePreview();
                 });
             }
@@ -458,11 +861,13 @@
                 cityInput.addEventListener('blur', function() {
                     capitalizeCity(this);
                     validateCity(this);
+                    validateCityField(this);
                     updatePreview();
                 });
                 cityInput.addEventListener('input', function() {
                     populateCityDatalist();
                     validateCity(this);
+                    validateCityField(this);
                 });
             }
             
@@ -479,6 +884,41 @@
             if (emailInput) {
                 emailInput.addEventListener('blur', function() {
                     validateEmail(this);
+                    updatePreview();
+                });
+                emailInput.addEventListener('input', function() {
+                    validateEmail(this);
+                });
+            }
+            
+            // Валидация для Summary и Extra
+            const summaryInput = document.querySelector('textarea[name="summary"]');
+            if (summaryInput) {
+                summaryInput.addEventListener('blur', function() {
+                    validateDescription(this);
+                });
+                summaryInput.addEventListener('input', function() {
+                    validateDescription(this);
+                });
+            }
+            
+            const skillsInput = document.querySelector('input[name="skills"]');
+            if (skillsInput) {
+                skillsInput.addEventListener('blur', function() {
+                    validateSkills(this);
+                });
+                skillsInput.addEventListener('input', function() {
+                    validateSkills(this);
+                });
+            }
+            
+            const extraInput = document.querySelector('textarea[name="extra"]');
+            if (extraInput) {
+                extraInput.addEventListener('blur', function() {
+                    validateDescription(this);
+                });
+                extraInput.addEventListener('input', function() {
+                    validateDescription(this);
                 });
             }
 
@@ -493,25 +933,103 @@
             updateExperienceListeners();
         });
         
+        function validateEducationYear(input) {
+            const value = input.value.trim();
+            const currentYear = new Date().getFullYear();
+            
+            if (value === '') {
+                input.style.borderColor = '';
+                input.title = '';
+                return true;
+            }
+            
+            // Check for "месяц YYYY - н.в." or "месяц YYYY - настоящее время" format
+            if (value.includes('н.в.') || value.includes('настоящее время')) {
+                const parts = value.split('-');
+                if (parts.length >= 2) {
+                    const startPart = parts[0].trim();
+                    const yearMatch = startPart.match(/\d{4}/);
+                    if (yearMatch) {
+                        const startYear = parseInt(yearMatch[0]);
+                        if (startYear > currentYear) {
+                            input.style.borderColor = '#ff6b6b';
+                            input.title = 'Год начала не должен быть в будущем';
+                            return false;
+                        }
+                    }
+                }
+                input.style.borderColor = '';
+                input.title = '';
+                return true;
+            }
+            
+            // Check for "YYYY - YYYY" format
+            if (value.includes('-')) {
+                const parts = value.split('-');
+                if (parts.length === 2) {
+                    const startYear = parseInt(parts[0].trim());
+                    const endYear = parseInt(parts[1].trim());
+                    if (isNaN(startYear) || isNaN(endYear)) {
+                        input.style.borderColor = '#ff6b6b';
+                        input.title = 'Годы должны быть числами в формате YYYY - YYYY';
+                        return false;
+                    }
+                    if (startYear >= endYear) {
+                        input.style.borderColor = '#ff6b6b';
+                        input.title = 'Год начала должен быть меньше года окончания';
+                        return false;
+                    }
+                    if (endYear > currentYear) {
+                        input.style.borderColor = '#ff6b6b';
+                        input.title = 'Год окончания не должен быть в будущем';
+                        return false;
+                    }
+                } else {
+                    input.style.borderColor = '#ff6b6b';
+                    input.title = 'Используйте формат YYYY - YYYY или Месяц YYYY - н.в.';
+                    return false;
+                }
+            } else {
+                // Single year format
+                const year = parseInt(value);
+                if (isNaN(year)) {
+                    input.style.borderColor = '#ff6b6b';
+                    input.title = 'Год должен быть числом';
+                    return false;
+                }
+                if (year > currentYear) {
+                    input.style.borderColor = '#ff6b6b';
+                    input.title = 'Год не может быть в будущем';
+                    return false;
+                }
+            }
+            
+            input.style.borderColor = '';
+            input.title = '';
+            return true;
+        }
+
         function updateEducationListeners() {
             const educationContainer = document.getElementById('education-container');
             const entries = educationContainer.querySelectorAll('.education-entry');
-            const institutionsList = document.getElementById('institutions-list');
             
             entries.forEach((entry) => {
-                const institutionInput = entry.querySelector('input[name="edu_institution"]');
-                const startInput = entry.querySelector('input[name="edu_start_year"]');
-                const endInput = entry.querySelector('input[name="edu_end_year"]');
+                const schoolInput = entry.querySelector('input[name="edu_school"]');
+                const yearInput = entry.querySelector('input[name="edu_year"]');
                 
-                if (institutionInput) {
-                    institutionInput.addEventListener('input', function() {
-                        populateInstitutionsDatalist(this.value);
+                if (yearInput) {
+                    yearInput.addEventListener('blur', function() {
+                        validateEducationYear(this);
+                        updatePreview();
+                    });
+                    yearInput.addEventListener('input', function() {
+                        validateEducationYear(this);
                     });
                 }
                 
-                if (endInput) {
-                    endInput.addEventListener('blur', function() {
-                        validateEducationYears(startInput, this);
+                if (schoolInput) {
+                    schoolInput.addEventListener('blur', function() {
+                        updatePreview();
                     });
                 }
             });
@@ -546,11 +1064,36 @@
             const entries = experienceContainer.querySelectorAll('.experience-entry');
             
             entries.forEach((entry) => {
+                const positionInput = entry.querySelector('input[name="exp_position"]');
+                const companyInput = entry.querySelector('input[name="exp_company"]');
                 const periodInput = entry.querySelector('input[name="exp_period"]');
+                const achievementsInput = entry.querySelector('textarea[name="exp_achievements"]');
                 
                 if (periodInput) {
                     periodInput.addEventListener('blur', function() {
                         validateWorkPeriod(this);
+                        updatePreview();
+                    });
+                    periodInput.addEventListener('input', function() {
+                        validateWorkPeriod(this);
+                    });
+                }
+                
+                if (positionInput) {
+                    positionInput.addEventListener('blur', function() {
+                        updatePreview();
+                    });
+                }
+                
+                if (companyInput) {
+                    companyInput.addEventListener('blur', function() {
+                        updatePreview();
+                    });
+                }
+                
+                if (achievementsInput) {
+                    achievementsInput.addEventListener('blur', function() {
+                        updatePreview();
                     });
                 }
             });
@@ -560,7 +1103,7 @@
 <body>
 <div id="form">
     <h2>Заполните резюме</h2>
-    <form id="resume-form" action="/generate" method="post" enctype="multipart/form-data" oninput="updatePreview()" onsubmit="return validateFormBeforeSubmit()">
+    <form id="resume-form" action="/generate" method="post" enctype="multipart/form-data" oninput="debouncedUpdatePreview()" onsubmit="handleFormSubmit(event)">
         <div class="section">
             <label>ФИО: <input type="text" name="fullname" maxlength="100" placeholder="Иван Иванов" required></label>
             
@@ -568,7 +1111,8 @@
             
             <label>Email: <input type="email" name="email" maxlength="100" placeholder="example@mail.com" required></label>
             
-            <label>Город: <input type="text" name="city" maxlength="100" placeholder="Москва" list="cities-list"></label>
+            <label>Город: <input type="text" name="city" maxlength="100" placeholder="Москва" list="cities-list" required></label>
+            <span class="city-error" style="color: #ff6b6b; font-size: 12px; display: block; margin-top: -6px; margin-bottom: 8px;"></span>
             <datalist id="cities-list"></datalist>
             <datalist id="institutions-list"></datalist>
         </div>

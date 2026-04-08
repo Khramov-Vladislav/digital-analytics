@@ -23,6 +23,18 @@ func RegisterRoutes(mux *http.ServeMux) {
 	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 }
 
+// filterEmptyStrings removes empty strings from slice and trims whitespace
+func filterEmptyStrings(s []string) []string {
+	var result []string
+	for _, v := range s {
+		trimmed := strings.TrimSpace(v)
+		if trimmed != "" {
+			result = append(result, trimmed)
+		}
+	}
+	return result
+}
+
 // formHandler serves the main form page.
 func formHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
@@ -48,18 +60,65 @@ func previewHandler(w http.ResponseWriter, r *http.Request) {
 		Email:    r.FormValue("email"),
 		City:     r.FormValue("city"),
 		Summary:  r.FormValue("summary"),
-		Skills:   strings.Split(r.FormValue("skills"), ","),
+		Skills:   filterEmptyStrings(strings.Split(r.FormValue("skills"), ",")),
 		Extra:    r.FormValue("extra"),
 		Template: r.FormValue("template"),
 	}
 
-	// Handle photo upload - convert to Data URL for preview
+	// Parse education
+	for i := range r.MultipartForm.Value["edu_school"] {
+		school := r.MultipartForm.Value["edu_school"][i]
+		if school == "" {
+			continue
+		}
+		year := ""
+		if len(r.MultipartForm.Value["edu_year"]) > i {
+			year = strings.TrimSpace(r.MultipartForm.Value["edu_year"][i])
+		}
+		resume.Education = append(resume.Education, models.EducationEntry{
+			School: school,
+			Year:   year,
+		})
+	}
+
+	// Parse experience
+	for i := range r.MultipartForm.Value["exp_position"] {
+		position := r.MultipartForm.Value["exp_position"][i]
+		if position == "" {
+			continue
+		}
+		var company, period string
+		if len(r.MultipartForm.Value["exp_company"]) > i {
+			company = r.MultipartForm.Value["exp_company"][i]
+		}
+		if len(r.MultipartForm.Value["exp_period"]) > i {
+			period = r.MultipartForm.Value["exp_period"][i]
+		}
+		achievements := []string{}
+		if len(r.MultipartForm.Value["exp_achievements"]) > i {
+			bullets := strings.Split(r.MultipartForm.Value["exp_achievements"][i], "\n")
+			for _, bullet := range bullets {
+				bullet = strings.TrimSpace(bullet)
+				if bullet != "" {
+					achievements = append(achievements, bullet)
+				}
+			}
+		}
+		resume.Experience = append(resume.Experience, models.ExperienceEntry{
+			Position:     position,
+			Company:      company,
+			Period:       period,
+			Achievements: achievements,
+		})
+	}
+
+	// Handle photo with base64 conversion for preview
 	if file, hdr, err := r.FormFile("photo"); err == nil {
-		defer file.Close()
 		resume.Photo = hdr
 
 		// Read file and convert to base64 Data URL
 		data, err := io.ReadAll(file)
+		file.Close()
 		if err == nil {
 			mimeType := hdr.Header.Get("Content-Type")
 			if mimeType == "" {
@@ -75,24 +134,11 @@ func previewHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// Debug: log raw bytes/runes before normalization
-	fmt.Printf("DEBUG preview BEFORE NormalizeData - fullname bytes=%v runes=%v\n", []byte(resume.FullName), []rune(resume.FullName))
-	fmt.Printf("DEBUG preview BEFORE NormalizeData - city bytes=%v runes=%v\n", []byte(resume.City), []rune(resume.City))
-	fmt.Printf("DEBUG preview BEFORE NormalizeData - summary bytes=%v runes=%v\n", []byte(resume.Summary), []rune(resume.Summary))
-
 	// Apply formatting and normalization
 	resume.NormalizeData()
 
-	// Validate input and report errors in preview
-	if err := resume.Validate(); err != nil {
-		w.Write([]byte("<p style=\"color:red;\">" + err.Error() + "</p>"))
-		return
-	}
-
-	// Debug: log raw bytes/runes after normalization
-	fmt.Printf("DEBUG preview AFTER NormalizeData - fullname=%q bytes=%v runes=%v\n", resume.FullName, []byte(resume.FullName), []rune(resume.FullName))
-	fmt.Printf("DEBUG preview AFTER NormalizeData - city=%q bytes=%v runes=%v\n", resume.City, []byte(resume.City), []rune(resume.City))
-	fmt.Printf("DEBUG preview AFTER NormalizeData - summary=%q bytes=%v runes=%v\n", resume.Summary, []byte(resume.Summary), []rune(resume.Summary))
+	// Skip validation in preview - just show what user has entered
+	// Validation will happen when generating PDF
 
 	data := map[string]interface{}{"Resume": resume}
 	renderTemplate(w, "preview.html", data)
@@ -114,28 +160,22 @@ func generateHandler(w http.ResponseWriter, r *http.Request) {
 		Email:    r.FormValue("email"),
 		City:     r.FormValue("city"),
 		Summary:  r.FormValue("summary"),
-		Skills:   strings.Split(r.FormValue("skills"), ","),
+		Skills:   filterEmptyStrings(strings.Split(r.FormValue("skills"), ",")),
 		Extra:    r.FormValue("extra"),
 		Template: r.FormValue("template"),
 	}
-	for i := range r.MultipartForm.Value["edu_title"] {
-		title := r.MultipartForm.Value["edu_title"][i]
-		if title == "" {
+	for i := range r.MultipartForm.Value["edu_school"] {
+		school := r.MultipartForm.Value["edu_school"][i]
+		if school == "" {
 			continue
 		}
-		achievements := []string{}
-		if len(r.MultipartForm.Value["edu_achievements"]) > i {
-			bullets := strings.Split(r.MultipartForm.Value["edu_achievements"][i], "\n")
-			for _, bullet := range bullets {
-				bullet = strings.TrimSpace(bullet)
-				if bullet != "" {
-					achievements = append(achievements, bullet)
-				}
-			}
+		year := ""
+		if len(r.MultipartForm.Value["edu_year"]) > i {
+			year = strings.TrimSpace(r.MultipartForm.Value["edu_year"][i])
 		}
 		resume.Education = append(resume.Education, models.EducationEntry{
-			Title:        title,
-			Achievements: achievements,
+			School: school,
+			Year:   year,
 		})
 	}
 	for i := range r.MultipartForm.Value["exp_position"] {
@@ -176,7 +216,10 @@ func generateHandler(w http.ResponseWriter, r *http.Request) {
 	resume.NormalizeData()
 
 	if err := resume.Validate(); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		// Return JSON error instead of plain text for better frontend handling
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprintf(w, `{"error": "%s"}`, err.Error())
 		return
 	}
 	pdfBytes, err := pdf.Generate(resume)

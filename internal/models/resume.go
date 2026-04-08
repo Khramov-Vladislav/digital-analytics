@@ -55,8 +55,8 @@ type Resume struct {
 }
 
 type EducationEntry struct {
-	Title        string   // "Санкт-Петербургский государственный университет, факультет прикладной математики (2012–2016)"
-	Achievements []string // optional additional bullet points
+	School string // "Санкт-Петербургский государственный университет"
+	Year   string // "Март 2021 - настоящее время" or "2021" or "2015 - 2019"
 }
 
 type ExperienceEntry struct {
@@ -178,50 +178,137 @@ func validateYears(startYearStr, endYearStr string) error {
 	return nil
 }
 
+// validateEducationYear checks if education year/period is valid
+func validateEducationYear(year string) error {
+	if year == "" {
+		return nil
+	}
+
+	trimmedYear := strings.TrimSpace(year)
+	currentYear := time.Now().Year()
+
+	// Check for "месяц YYYY - н.в." or "месяц YYYY - настоящее время" format (current/present)
+	if strings.Contains(trimmedYear, "н.в.") || strings.Contains(trimmedYear, "настоящее время") {
+		// Extract start year from format like "Март 2021 - н.в."
+		parts := strings.Split(trimmedYear, "-")
+		if len(parts) < 2 {
+			return errors.New("invalid education period format")
+		}
+		startPart := strings.TrimSpace(parts[0])
+		// Try to extract year from "Март 2021" format
+		yearParts := strings.Fields(startPart)
+		if len(yearParts) > 0 {
+			startYear, err := strconv.Atoi(yearParts[len(yearParts)-1])
+			if err != nil {
+				return errors.New("education start year must be a valid number")
+			}
+			if startYear > currentYear {
+				return errors.New("education start year cannot be in the future")
+			}
+		}
+		return nil
+	}
+
+	// Check for "YYYY - YYYY" format
+	if strings.Contains(trimmedYear, "-") {
+		parts := strings.Split(trimmedYear, "-")
+		if len(parts) != 2 {
+			return errors.New("invalid education period format, use 'YYYY - YYYY' or 'Month YYYY - н.в.'")
+		}
+		startYear, errStart := strconv.Atoi(strings.TrimSpace(parts[0]))
+		endYear, errEnd := strconv.Atoi(strings.TrimSpace(parts[1]))
+
+		if errStart != nil || errEnd != nil {
+			return errors.New("education years must be valid numbers")
+		}
+
+		if startYear >= endYear {
+			return errors.New("education start year must be before end year")
+		}
+
+		if endYear > currentYear {
+			return errors.New("education end year cannot be in the future")
+		}
+
+		return nil
+	}
+
+	// Single year format "YYYY"
+	year_int, err := strconv.Atoi(trimmedYear)
+	if err != nil {
+		return errors.New("education year must be a valid number or period")
+	}
+
+	if year_int > currentYear {
+		return errors.New("education year cannot be in the future")
+	}
+
+	return nil
+}
+
 // validateWorkPeriod checks if work period is valid
 func validateWorkPeriod(period string) error {
 	if period == "" {
 		return nil
 	}
 
-	// Check if it's "XXXX-н.в." format (current/present)
-	if strings.HasSuffix(period, "н.в.") || strings.HasSuffix(period, "по наст. время") {
-		parts := strings.Split(period, "-")
+	trimmedPeriod := strings.TrimSpace(period)
+	currentYear := time.Now().Year()
+
+	// Check for "месяц YYYY - н.в." or "месяц YYYY - настоящее время" format (current/present)
+	if strings.Contains(trimmedPeriod, "н.в.") || strings.Contains(trimmedPeriod, "настоящее время") {
+		// Extract start year from format like "Март 2021 - н.в."
+		parts := strings.Split(trimmedPeriod, "-")
 		if len(parts) < 2 {
 			return errors.New("invalid work period format")
 		}
-		startYearStr := strings.TrimSpace(parts[0])
-		startYear, err := strconv.Atoi(startYearStr)
-		if err != nil {
-			return errors.New("work period start year must be a valid number")
-		}
-		currentYear := time.Now().Year()
-		if startYear > currentYear {
-			return errors.New("work start year cannot be in the future")
+		startPart := strings.TrimSpace(parts[0])
+		// Try to extract year from "Март 2021" format
+		yearParts := strings.Fields(startPart)
+		if len(yearParts) > 0 {
+			startYear, err := strconv.Atoi(yearParts[len(yearParts)-1])
+			if err != nil {
+				return errors.New("work start year must be a valid number")
+			}
+			if startYear > currentYear {
+				return errors.New("work start year cannot be in the future")
+			}
 		}
 		return nil
 	}
 
-	// Regular format: XXXX-XXXX
-	parts := strings.Split(period, "-")
-	if len(parts) != 2 {
-		return errors.New("invalid work period format, use 'XXXX-XXXX' or 'XXXX-н.в.'")
+	// Check for "YYYY - YYYY" format
+	if strings.Contains(trimmedPeriod, "-") {
+		parts := strings.Split(trimmedPeriod, "-")
+		if len(parts) != 2 {
+			return errors.New("invalid work period format, use 'YYYY - YYYY' or 'Month YYYY - н.в.'")
+		}
+		startYear, errStart := strconv.Atoi(strings.TrimSpace(parts[0]))
+		endYear, errEnd := strconv.Atoi(strings.TrimSpace(parts[1]))
+
+		if errStart != nil || errEnd != nil {
+			return errors.New("work period years must be valid numbers")
+		}
+
+		if startYear >= endYear {
+			return errors.New("work start year must be before end year")
+		}
+
+		if endYear > currentYear {
+			return errors.New("work end year cannot be in the future")
+		}
+
+		return nil
 	}
 
-	startYear, errStart := strconv.Atoi(strings.TrimSpace(parts[0]))
-	endYear, errEnd := strconv.Atoi(strings.TrimSpace(parts[1]))
-
-	if errStart != nil || errEnd != nil {
-		return errors.New("work period years must be valid numbers")
+	// Single year format "YYYY"
+	year_int, err := strconv.Atoi(trimmedPeriod)
+	if err != nil {
+		return errors.New("work period must be a valid year or period")
 	}
 
-	if startYear >= endYear {
-		return errors.New("work start year must be before end year")
-	}
-
-	currentYear := time.Now().Year()
-	if endYear > currentYear {
-		return errors.New("work end year cannot be in the future")
+	if year_int > currentYear {
+		return errors.New("work year cannot be in the future")
 	}
 
 	return nil
@@ -250,11 +337,23 @@ func (r *Resume) Validate() error {
 	if len(r.City) > 100 {
 		return errors.New("city must be <=100 characters")
 	}
-	if !validateCity(r.City) {
+	if len(r.City) == 0 {
+		return errors.New("city is required")
+	}
+	if !isValidCity(r.City) {
 		return errors.New("city is not in the allowed list")
 	}
 	if len(r.Summary) > 1000 {
 		return errors.New("summary must be <=1000 characters")
+	}
+
+	// Validate education years
+	for _, edu := range r.Education {
+		if edu.Year != "" {
+			if err := validateEducationYear(edu.Year); err != nil {
+				return err
+			}
+		}
 	}
 
 	// Validate work period

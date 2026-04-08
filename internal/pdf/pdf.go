@@ -162,10 +162,10 @@ func generateClassic(r *models.Resume) ([]byte, error) {
 		pdf.Ln(7)
 		for _, edu := range r.Education {
 			pdf.SetFont(fontName, "B", 10)
-			pdf.MultiCell(textWidth, 4, edu.Title, "", "L", false)
+			pdf.MultiCell(textWidth, 4, edu.School, "", "L", false)
 			pdf.SetFont(fontName, "", 9)
-			for _, achievement := range edu.Achievements {
-				pdf.MultiCell(textWidth-3, 3, "• "+achievement, "", "L", false)
+			if edu.Year != "" {
+				pdf.MultiCell(textWidth, 3, edu.Year, "", "L", false)
 			}
 			pdf.Ln(2)
 		}
@@ -308,11 +308,11 @@ func generateModern(r *models.Resume) ([]byte, error) {
 		for i, edu := range r.Education {
 			pdf.SetFont(fontName, "B", 10)
 			pdf.SetTextColor(30, 90, 150)
-			pdf.MultiCell(170, 4, edu.Title, "", "L", false)
+			pdf.MultiCell(170, 4, edu.School, "", "L", false)
 			pdf.SetTextColor(0, 0, 0)
 			pdf.SetFont(fontName, "", 9)
-			for _, achievement := range edu.Achievements {
-				pdf.MultiCell(167, 3, "• "+achievement, "", "L", false)
+			if edu.Year != "" {
+				pdf.MultiCell(167, 3, edu.Year, "", "L", false)
 			}
 			if i < len(r.Education)-1 {
 				pdf.Ln(2)
@@ -617,9 +617,9 @@ func generateProfessional(r *models.Resume) ([]byte, error) {
 
 			pdf.SetXY(75, currentY)
 			pdf.SetFont(fontName, "B", 8)
-			pdf.MultiCell(130, 3, edu.Title, "", "L", false)
+			pdf.MultiCell(130, 3, edu.School, "", "L", false)
 
-			for _, achievement := range edu.Achievements {
+			if edu.Year != "" {
 				currentY = pdf.GetY()
 				if currentY > 275 {
 					pdf.AddPage()
@@ -627,7 +627,7 @@ func generateProfessional(r *models.Resume) ([]byte, error) {
 				}
 				pdf.SetXY(75, pdf.GetY())
 				pdf.SetFont(fontName, "", 7)
-				pdf.MultiCell(127, 2, "• "+achievement, "", "L", false)
+				pdf.MultiCell(127, 2, edu.Year, "", "L", false)
 			}
 			pdf.Ln(1)
 		}
@@ -771,7 +771,7 @@ func generateCreative(r *models.Resume) ([]byte, error) {
 		pdf.Cell(170, 4, "ОБРАЗОВАНИЕ")
 		pdf.Ln(4)
 
-		for i, edu := range r.Education {
+		for _, edu := range r.Education {
 			currentY := pdf.GetY()
 			// Check if we need a new page
 			if currentY > 270 {
@@ -781,21 +781,17 @@ func generateCreative(r *models.Resume) ([]byte, error) {
 
 			pdf.SetTextColor(0, 0, 0)
 			pdf.SetFont(fontName, "B", 9)
-			pdf.MultiCell(167, 3, edu.Title, "", "L", false)
+			pdf.MultiCell(167, 3, edu.School, "", "L", false)
 
 			pdf.SetFont(fontName, "", 8)
 			pdf.SetTextColor(0, 0, 0)
-			for _, achievement := range edu.Achievements {
+			if edu.Year != "" {
 				currentY = pdf.GetY()
 				if currentY > 275 {
 					pdf.AddPage()
 					pdf.SetY(15)
 				}
-				pdf.MultiCell(165, 2, "• "+achievement, "", "L", false)
-			}
-			if i < len(r.Education)-1 {
-				pdf.Ln(1)
-			} else {
+				pdf.MultiCell(165, 2, edu.Year, "", "L", false)
 				pdf.Ln(2)
 			}
 		}
