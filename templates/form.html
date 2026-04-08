@@ -143,6 +143,7 @@
             color: #fff;
             padding: 16px 20px 10px 20px;
             position: relative;
+            padding-right: 200px;
         }
         .template-modern .header .photo-section {
             position: absolute;
@@ -152,6 +153,7 @@
         }
         .template-modern h1 {
             margin: 0 0 6px 0;
+            word-wrap: break-word;
         }
         .template-modern .contact-info p {
             margin: 1px 0;
@@ -814,18 +816,43 @@
                     const bodyMatch = html.match(/<body[^>]*>([\s\S]*)<\/body>/);
                     const bodyContent = bodyMatch ? bodyMatch[1] : html;
                     previewDiv.innerHTML = bodyContent;
+                    
+                    // Переинициализируем listeners для новых элементов (если шаблон изменился)
+                    // Но не очищаем значения форм
+                    updateEducationListeners();
+                    updateExperienceListeners();
                 })
                 .catch(err => console.log('Preview error:', err));
         }
 
-        // Инициализация при загрузке страницы
-        document.addEventListener('DOMContentLoaded', function() {
-            const fullnameInput = document.querySelector('input[name="fullname"]');
-            const cityInput = document.querySelector('input[name="city"]');
-            const citiesList = document.getElementById('cities-list');
-            const phoneInput = document.querySelector('input[name="phone"]');
-            const emailInput = document.querySelector('input[name="email"]');
-            const photoInput = document.querySelector('input[name="photo"]');
+        // Инициализация всех listeners при загрузке страницы
+        function initializeFormListeners() {
+            const form = document.getElementById('resume-form');
+            if (!form) return;
+            
+            const fullnameInput = form.querySelector('input[name="fullname"]');
+            const cityInput = form.querySelector('input[name="city"]');
+            const phoneInput = form.querySelector('input[name="phone"]');
+            const emailInput = form.querySelector('input[name="email"]');
+            const photoInput = form.querySelector('input[name="photo"]');
+            const summaryInput = form.querySelector('textarea[name="summary"]');
+            const skillsInput = form.querySelector('input[name="skills"]');
+            const extraInput = form.querySelector('textarea[name="extra"]');
+            
+            // Добавляем default entries если контейнеры пусты
+            const educationContainer = document.getElementById('education-container');
+            const experienceContainer = document.getElementById('experience-container');
+            if (educationContainer.children.length === 1) { // Только h3
+                addEducation();
+            }
+            if (experienceContainer.children.length === 1) { // Только h3
+                addExperience();
+            }
+            
+            // Инициализируем при загрузке
+            updateEducationListeners();
+            updateExperienceListeners();
+            updatePreview();
             
             if (fullnameInput) {
                 fullnameInput.addEventListener('blur', function() {
@@ -835,29 +862,7 @@
                 });
             }
             
-            function populateCityDatalist() {
-                const query = cityInput.value.trim();
-                if (query.length === 0) {
-                    citiesList.innerHTML = '';
-                    return;
-                }
-                fetch(`/autocomplete/cities?q=${encodeURIComponent(query)}`)
-                    .then(response => response.json())
-                    .then(data => {
-                        citiesList.innerHTML = '';
-                        data.forEach(city => {
-                            const option = document.createElement('option');
-                            option.value = city;
-                            citiesList.appendChild(option);
-                        });
-                    })
-                    .catch(error => console.error('Error fetching cities:', error));
-            }
-            
             if (cityInput) {
-                // ensure city suggestions available
-                populateCityDatalist();
-
                 cityInput.addEventListener('blur', function() {
                     capitalizeCity(this);
                     validateCity(this);
@@ -865,7 +870,6 @@
                     updatePreview();
                 });
                 cityInput.addEventListener('input', function() {
-                    populateCityDatalist();
                     validateCity(this);
                     validateCityField(this);
                 });
@@ -891,8 +895,6 @@
                 });
             }
             
-            // Валидация для Summary и Extra
-            const summaryInput = document.querySelector('textarea[name="summary"]');
             if (summaryInput) {
                 summaryInput.addEventListener('blur', function() {
                     validateDescription(this);
@@ -902,7 +904,6 @@
                 });
             }
             
-            const skillsInput = document.querySelector('input[name="skills"]');
             if (skillsInput) {
                 skillsInput.addEventListener('blur', function() {
                     validateSkills(this);
@@ -912,7 +913,6 @@
                 });
             }
             
-            const extraInput = document.querySelector('textarea[name="extra"]');
             if (extraInput) {
                 extraInput.addEventListener('blur', function() {
                     validateDescription(this);
@@ -927,12 +927,11 @@
                     handlePhotoUpload(this);
                 });
             }
-            
-            // Add event listeners for education years validation
-            updateEducationListeners();
-            updateExperienceListeners();
-        });
-        
+        }
+
+        // Вызываем инициализацию при загрузке страницы
+        window.addEventListener('load', initializeFormListeners);
+
         function validateEducationYear(input) {
             const value = input.value.trim();
             const currentYear = new Date().getFullYear();
@@ -1011,9 +1010,10 @@
 
         function updateEducationListeners() {
             const educationContainer = document.getElementById('education-container');
-            const entries = educationContainer.querySelectorAll('.education-entry');
+            const entries = educationContainer.querySelectorAll('.education-entry:not([data-listeners-added])');
             
             entries.forEach((entry) => {
+                entry.setAttribute('data-listeners-added', 'true');
                 const schoolInput = entry.querySelector('input[name="edu_school"]');
                 const yearInput = entry.querySelector('input[name="edu_year"]');
                 
@@ -1061,9 +1061,10 @@
         
         function updateExperienceListeners() {
             const experienceContainer = document.getElementById('experience-container');
-            const entries = experienceContainer.querySelectorAll('.experience-entry');
+            const entries = experienceContainer.querySelectorAll('.experience-entry:not([data-listeners-added])');
             
             entries.forEach((entry) => {
+                entry.setAttribute('data-listeners-added', 'true');
                 const positionInput = entry.querySelector('input[name="exp_position"]');
                 const companyInput = entry.querySelector('input[name="exp_company"]');
                 const periodInput = entry.querySelector('input[name="exp_period"]');
