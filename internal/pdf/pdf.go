@@ -62,6 +62,19 @@ func Generate(r *models.Resume) ([]byte, error) {
 	}
 }
 
+// getOptimalFontSizeForName selects appropriate font size based on name length
+func getOptimalFontSizeForName(name string) float64 {
+	// Adjust font size based on full name length to prevent bad hyphenation
+	nameLen := len(name)
+	if nameLen > 50 {
+		return 12.0 // Very long names
+	}
+	if nameLen > 40 {
+		return 14.0 // Long names
+	}
+	return 18.0 // Standard size
+}
+
 // generateClassic creates a traditional ГОСТ-compliant resume style.
 func generateClassic(r *models.Resume) ([]byte, error) {
 	pdf := gofpdf.New("P", "mm", "A4", "")
@@ -87,19 +100,25 @@ func generateClassic(r *models.Resume) ([]byte, error) {
 	// into the horizontal region occupied by the picture. photoX = pageW - imgW - 10,
 	// so available width = photoX - leftMargin (15).
 	textWidth := 170.0
+	nameWidth := 170.0 // Separate width for name to prevent hyphenation issues
 	if hasPhoto {
 		pageW, _ := pdf.GetPageSize()
 		imgW := 50.0                  // must match width used in addPhotoToPage
 		textWidth = pageW - imgW - 25 // left margin (15) + gap (10)
+		nameWidth = pageW * 0.50      // Use 50% of page width for better word breaking
 		if textWidth < 0 {
 			textWidth = 0
 		}
+		if nameWidth < 0 {
+			nameWidth = 0
+		}
 	}
 
-	// Name
-	pdf.SetFont(fontName, "B", 18)
+	// Name - use optimal font size based on name length to avoid hyphenation issues
+	fontSize := getOptimalFontSizeForName(r.FullName)
+	pdf.SetFont(fontName, "B", fontSize)
 	pdf.SetXY(15, 15)
-	pdf.MultiCell(textWidth, 7, r.FullName, "", "L", false)
+	pdf.MultiCell(nameWidth, 7, r.FullName, "", "L", false)
 	pdf.Ln(2)
 
 	// Contact info as vertical list
@@ -222,9 +241,9 @@ func generateModern(r *models.Resume) ([]byte, error) {
 
 	pdf.AddPage()
 
-	// Header section with background
+	// Header section with background - increased height for long names
 	pdf.SetFillColor(30, 90, 150)
-	pdf.Rect(0, 0, 210, 50, "F")
+	pdf.Rect(0, 0, 210, 65, "F")
 
 	// Photo in header
 	if r.Photo != nil {
@@ -234,26 +253,30 @@ func generateModern(r *models.Resume) ([]byte, error) {
 	// Name in header
 	pdf.SetTextColor(255, 255, 255)
 	pdf.SetFont(fontName, "B", 18)
-	pdf.SetXY(15, 18)
-	pdf.MultiCell(150, 7, r.FullName, "", "L", false)
+	pdf.SetXY(15, 10)
+	nameWidth := 180.0
+	if r.Photo != nil {
+		nameWidth = 120.0 // Narrower width when photo is present
+	}
+	pdf.MultiCell(nameWidth, 7, r.FullName, "", "L", false)
 
 	// Contact in header (stacked vertically)
 	pdf.SetFont(fontName, "", 9)
-	pdf.SetXY(15, 32)
-	pdf.Cell(150, 4, "Телефон: "+r.Phone)
-	pdf.Ln(5)
-	pdf.SetX(15)
-	pdf.Cell(150, 4, "Email: "+r.Email)
-	pdf.Ln(5)
-	pdf.SetX(15)
-	pdf.Cell(150, 4, "Город: "+r.City)
-
-	// Move main content start below header and possible photo area
-	if r.Photo != nil {
-		pdf.SetY(60)
-	} else {
-		pdf.SetY(52)
+	yPos := pdf.GetY() + 2
+	if yPos > 38 {
+		yPos = 38 // Ensure contact info fits
 	}
+	pdf.SetXY(15, yPos)
+	pdf.Cell(nameWidth, 4, "Телефон: "+r.Phone)
+	pdf.Ln(5)
+	pdf.SetX(15)
+	pdf.Cell(nameWidth, 4, "Email: "+r.Email)
+	pdf.Ln(5)
+	pdf.SetX(15)
+	pdf.Cell(nameWidth, 4, "Город: "+r.City)
+
+	// Move main content start below header
+	pdf.SetY(70)
 
 	// Reset colors
 	pdf.SetTextColor(0, 0, 0)
@@ -656,9 +679,9 @@ func generateCreative(r *models.Resume) ([]byte, error) {
 		pdf.Rect(float64(i)*barWidth, 0, barWidth, 4, "F")
 	}
 
-	// Header section with light background
+	// Header section with light background - increased height for long names
 	pdf.SetFillColor(248, 250, 252)
-	pdf.Rect(0, 4, 210, 45, "F")
+	pdf.Rect(0, 4, 210, 70, "F")
 
 	// Photo in header (left side)
 	hasPhoto := false
@@ -667,14 +690,14 @@ func generateCreative(r *models.Resume) ([]byte, error) {
 		hasPhoto = true
 	}
 
-	// Name in header (white text on accent)
+	// Name in header
 	pdf.SetTextColor(255, 107, 107)
 	pdf.SetFont(fontName, "B", 20)
 	textX := 70.0
 	if !hasPhoto {
 		textX = 15.0
 	}
-	pdf.SetXY(textX, 10)
+	pdf.SetXY(textX, 8)
 	textWidth := 125.0
 	if !hasPhoto {
 		textWidth = 180.0
@@ -684,7 +707,11 @@ func generateCreative(r *models.Resume) ([]byte, error) {
 	// Contact in header
 	pdf.SetFont(fontName, "", 9)
 	pdf.SetTextColor(66, 133, 244)
-	pdf.SetXY(textX, 28)
+	yPos := pdf.GetY() + 1
+	if yPos > 40 {
+		yPos = 40 // Ensure contact info doesn't go too far down
+	}
+	pdf.SetXY(textX, yPos)
 	contactText := "Город: " + r.City + " | Телефон: " + r.Phone + " | Email: " + r.Email
 	pdf.MultiCell(textWidth, 4, contactText, "", "L", false)
 

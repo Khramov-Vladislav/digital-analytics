@@ -106,24 +106,45 @@ func capitalizeName(fullName string) string {
 	}
 
 	for i, part := range parts {
-		lowerPart := strings.ToLower(part)
-		if specialLowercasePrefixes[lowerPart] {
-			// Keep these prefixes in lowercase
-			parts[i] = lowerPart
-		} else {
-			// Properly capitalize Unicode string: uppercase first rune, lowercase rest
-			if len(part) > 0 {
-				rs := []rune(part)
-				first := unicode.ToUpper(rs[0])
-				rest := ""
-				if len(rs) > 1 {
-					rest = strings.ToLower(string(rs[1:]))
-				}
-				parts[i] = string(first) + rest
+		// Handle hyphenated words (e.g., "Константинопольский-бердичевский")
+		if strings.Contains(part, "-") {
+			hyphenParts := strings.Split(part, "-")
+			for j, hyphenPart := range hyphenParts {
+				hyphenParts[j] = capitalizeSingleWord(hyphenPart, specialLowercasePrefixes)
 			}
+			parts[i] = strings.Join(hyphenParts, "-")
+		} else if strings.Contains(part, "'") {
+			// Handle apostrophes similarly (e.g., "O'Brien")
+			apostropheParts := strings.Split(part, "'")
+			for j, apostrophePart := range apostropheParts {
+				apostropheParts[j] = capitalizeSingleWord(apostrophePart, specialLowercasePrefixes)
+			}
+			parts[i] = strings.Join(apostropheParts, "'")
+		} else {
+			parts[i] = capitalizeSingleWord(part, specialLowercasePrefixes)
 		}
 	}
 	return strings.Join(parts, " ")
+}
+
+// capitalizeSingleWord capitalizes a single word, respecting special lowercase prefixes
+func capitalizeSingleWord(word string, specialPrefixes map[string]bool) string {
+	if len(word) == 0 {
+		return word
+	}
+
+	lowerWord := strings.ToLower(word)
+	if specialPrefixes[lowerWord] {
+		return lowerWord
+	}
+
+	rs := []rune(word)
+	first := unicode.ToUpper(rs[0])
+	rest := ""
+	if len(rs) > 1 {
+		rest = strings.ToLower(string(rs[1:]))
+	}
+	return string(first) + rest
 }
 
 // capitalizeCity capitalizes city name
@@ -195,31 +216,28 @@ func validateEducationYear(year string) error {
 			return errors.New("invalid education period format")
 		}
 		startPart := strings.TrimSpace(parts[0])
-		// Try to extract year from "Март 2021" format
-		yearParts := strings.Fields(startPart)
-		if len(yearParts) > 0 {
-			startYear, err := strconv.Atoi(yearParts[len(yearParts)-1])
-			if err != nil {
-				return errors.New("education start year must be a valid number")
-			}
-			if startYear > currentYear {
-				return errors.New("education start year cannot be in the future")
-			}
+		startYear := extractYear(startPart)
+		if startYear == 0 {
+			return errors.New("education start year must be a valid number in format YYYY")
+		}
+		if startYear > currentYear {
+			return errors.New("education start year cannot be in the future")
 		}
 		return nil
 	}
 
-	// Check for "YYYY - YYYY" format
+	// Check for "YYYY - YYYY" or "Month YYYY - Month YYYY" format
 	if strings.Contains(trimmedYear, "-") {
 		parts := strings.Split(trimmedYear, "-")
 		if len(parts) != 2 {
-			return errors.New("invalid education period format, use 'YYYY - YYYY' or 'Month YYYY - н.в.'")
+			return errors.New("invalid education period format, use 'YYYY - YYYY' or 'Month YYYY - Month YYYY' or 'Month YYYY - н.в.'")
 		}
-		startYear, errStart := strconv.Atoi(strings.TrimSpace(parts[0]))
-		endYear, errEnd := strconv.Atoi(strings.TrimSpace(parts[1]))
 
-		if errStart != nil || errEnd != nil {
-			return errors.New("education years must be valid numbers")
+		startYear := extractYear(strings.TrimSpace(parts[0]))
+		endYear := extractYear(strings.TrimSpace(parts[1]))
+
+		if startYear == 0 || endYear == 0 {
+			return errors.New("education years must contain valid numbers in format YYYY")
 		}
 
 		if startYear >= endYear {
@@ -228,6 +246,10 @@ func validateEducationYear(year string) error {
 
 		if endYear > currentYear {
 			return errors.New("education end year cannot be in the future")
+		}
+
+		if startYear > currentYear {
+			return errors.New("education start year cannot be in the future")
 		}
 
 		return nil
@@ -244,6 +266,21 @@ func validateEducationYear(year string) error {
 	}
 
 	return nil
+}
+
+// extractYear extracts a 4-digit year from a string (handles both "YYYY" and "Month YYYY" formats)
+func extractYear(str string) int {
+	// Look for 4 consecutive digits
+	re := regexp.MustCompile(`\b\d{4}\b`)
+	match := re.FindString(str)
+	if match == "" {
+		return 0
+	}
+	year, err := strconv.Atoi(match)
+	if err != nil {
+		return 0
+	}
+	return year
 }
 
 // validateWorkPeriod checks if work period is valid
@@ -263,31 +300,28 @@ func validateWorkPeriod(period string) error {
 			return errors.New("invalid work period format")
 		}
 		startPart := strings.TrimSpace(parts[0])
-		// Try to extract year from "Март 2021" format
-		yearParts := strings.Fields(startPart)
-		if len(yearParts) > 0 {
-			startYear, err := strconv.Atoi(yearParts[len(yearParts)-1])
-			if err != nil {
-				return errors.New("work start year must be a valid number")
-			}
-			if startYear > currentYear {
-				return errors.New("work start year cannot be in the future")
-			}
+		startYear := extractYear(startPart)
+		if startYear == 0 {
+			return errors.New("work start year must be a valid number in format YYYY")
+		}
+		if startYear > currentYear {
+			return errors.New("work start year cannot be in the future")
 		}
 		return nil
 	}
 
-	// Check for "YYYY - YYYY" format
+	// Check for "YYYY - YYYY" or "Month YYYY - Month YYYY" format
 	if strings.Contains(trimmedPeriod, "-") {
 		parts := strings.Split(trimmedPeriod, "-")
 		if len(parts) != 2 {
-			return errors.New("invalid work period format, use 'YYYY - YYYY' or 'Month YYYY - н.в.'")
+			return errors.New("invalid work period format, use 'YYYY - YYYY' or 'Month YYYY - Month YYYY' or 'Month YYYY - н.в.'")
 		}
-		startYear, errStart := strconv.Atoi(strings.TrimSpace(parts[0]))
-		endYear, errEnd := strconv.Atoi(strings.TrimSpace(parts[1]))
 
-		if errStart != nil || errEnd != nil {
-			return errors.New("work period years must be valid numbers")
+		startYear := extractYear(strings.TrimSpace(parts[0]))
+		endYear := extractYear(strings.TrimSpace(parts[1]))
+
+		if startYear == 0 || endYear == 0 {
+			return errors.New("work period years must contain valid numbers in format YYYY")
 		}
 
 		if startYear >= endYear {
@@ -296,6 +330,10 @@ func validateWorkPeriod(period string) error {
 
 		if endYear > currentYear {
 			return errors.New("work end year cannot be in the future")
+		}
+
+		if startYear > currentYear {
+			return errors.New("work start year cannot be in the future")
 		}
 
 		return nil

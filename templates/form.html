@@ -265,18 +265,41 @@
         .template-creative .extra-title { color: rgb(255,107,107); }
     </style>
     <script>
-        // Капитализация ФИО с поддержкой особых случаев
+        // Капитализация ФИО с поддержкой особых случаев, дефисов и апостофов
         function capitalizeFullName(input) {
             let value = input.value.trim();
+            if (!value) return;
+            
             let parts = value.split(/\s+/);
             let lowercasePrefixes = {'van': true, 'von': true, 'de': true, 'der': true, 'den': true, 'la': true, 'le': true, 'du': true, 'et': true, 'mc': true};
             
             for (let i = 0; i < parts.length; i++) {
                 let part = parts[i].toLowerCase();
+                
+                // Проверяем на префиксы только если это не часть сложного слова с дефисом
                 if (lowercasePrefixes[part]) {
                     parts[i] = part;
                 } else if (parts[i].length > 0) {
-                    parts[i] = parts[i].charAt(0).toUpperCase() + parts[i].slice(1).toLowerCase();
+                    // Обрабатываем сложные слова с дефисом
+                    if (parts[i].includes('-')) {
+                        let hyphenParts = parts[i].split('-');
+                        parts[i] = hyphenParts.map(hyp => {
+                            if (hyp.length === 0) return hyp;
+                            return hyp.charAt(0).toUpperCase() + hyp.slice(1).toLowerCase();
+                        }).join('-');
+                    }
+                    // Обрабатываем слова с апострофом
+                    else if (parts[i].includes("'")) {
+                        let apostropheParts = parts[i].split("'");
+                        parts[i] = apostropheParts.map(ap => {
+                            if (ap.length === 0) return ap;
+                            return ap.charAt(0).toUpperCase() + ap.slice(1).toLowerCase();
+                        }).join("'");
+                    }
+                    // Обычная капитализация
+                    else {
+                        parts[i] = parts[i].charAt(0).toUpperCase() + parts[i].slice(1).toLowerCase();
+                    }
                 }
             }
             input.value = parts.join(' ');
@@ -385,17 +408,26 @@
                 return true;
             }
 
-            // Check for "YYYY - YYYY" format
+            // Check for date range with dash
             if (value.includes('-')) {
                 const parts = value.split('-');
                 if (parts.length === 2) {
-                    const startYear = parseInt(parts[0].trim());
-                    const endYear = parseInt(parts[1].trim());
-                    if (isNaN(startYear) || isNaN(endYear)) {
+                    const startPart = parts[0].trim();
+                    const endPart = parts[1].trim();
+                    
+                    // Extract years from both parts
+                    const startYearMatch = startPart.match(/\d{4}/);
+                    const endYearMatch = endPart.match(/\d{4}/);
+                    
+                    if (!startYearMatch || !endYearMatch) {
                         input.style.borderColor = '#ff6b6b';
-                        input.title = 'Годы должны быть числами в формате YYYY - YYYY';
+                        input.title = 'Укажите год в формате YYYY';
                         return false;
                     }
+                    
+                    const startYear = parseInt(startYearMatch[0]);
+                    const endYear = parseInt(endYearMatch[0]);
+                    
                     if (startYear >= endYear) {
                         input.style.borderColor = '#ff6b6b';
                         input.title = 'Год начала должен быть меньше года окончания';
@@ -406,9 +438,14 @@
                         input.title = 'Год окончания не может быть в будущем';
                         return false;
                     }
+                    if (startYear > currentYear) {
+                        input.style.borderColor = '#ff6b6b';
+                        input.title = 'Год начала работы не должен быть в будущем';
+                        return false;
+                    }
                 } else {
                     input.style.borderColor = '#ff6b6b';
-                    input.title = 'Используйте формат YYYY - YYYY или Месяц YYYY - н.в.';
+                    input.title = 'Используйте формат: YYYY - YYYY или Месяц YYYY - Месяц YYYY или Месяц YYYY - н.в.';
                     return false;
                 }
             } else {
@@ -936,6 +973,8 @@
         function validateEducationYear(input) {
             const value = input.value.trim();
             const currentYear = new Date().getFullYear();
+            const months = ['январь|января', 'февраль|февраля', 'март|марта', 'апрель|апреля', 'май|мая', 'июнь|июня',
+                           'июль|июля', 'август|августа', 'сентябрь|сентября', 'октябрь|октября', 'ноябрь|ноября', 'декабрь|декабря'];
             
             if (value === '') {
                 input.style.borderColor = '';
@@ -963,17 +1002,26 @@
                 return true;
             }
             
-            // Check for "YYYY - YYYY" format
+            // Check for date range with dash
             if (value.includes('-')) {
                 const parts = value.split('-');
                 if (parts.length === 2) {
-                    const startYear = parseInt(parts[0].trim());
-                    const endYear = parseInt(parts[1].trim());
-                    if (isNaN(startYear) || isNaN(endYear)) {
+                    const startPart = parts[0].trim();
+                    const endPart = parts[1].trim();
+                    
+                    // Extract years from both parts
+                    const startYearMatch = startPart.match(/\d{4}/);
+                    const endYearMatch = endPart.match(/\d{4}/);
+                    
+                    if (!startYearMatch || !endYearMatch) {
                         input.style.borderColor = '#ff6b6b';
-                        input.title = 'Годы должны быть числами в формате YYYY - YYYY';
+                        input.title = 'Укажите год в формате YYYY';
                         return false;
                     }
+                    
+                    const startYear = parseInt(startYearMatch[0]);
+                    const endYear = parseInt(endYearMatch[0]);
+                    
                     if (startYear >= endYear) {
                         input.style.borderColor = '#ff6b6b';
                         input.title = 'Год начала должен быть меньше года окончания';
@@ -984,9 +1032,14 @@
                         input.title = 'Год окончания не должен быть в будущем';
                         return false;
                     }
+                    if (startYear > currentYear) {
+                        input.style.borderColor = '#ff6b6b';
+                        input.title = 'Год начала не должен быть в будущем';
+                        return false;
+                    }
                 } else {
                     input.style.borderColor = '#ff6b6b';
-                    input.title = 'Используйте формат YYYY - YYYY или Месяц YYYY - н.в.';
+                    input.title = 'Используйте формат: YYYY - YYYY или Месяц YYYY - Месяц YYYY или Месяц YYYY - н.в.';
                     return false;
                 }
             } else {
