@@ -74,6 +74,12 @@
         button[type="submit"]:hover {
             background-color: #007399;
         }
+        button.btn-secondary {
+            background-color: #6c757d;
+        }
+        button.btn-secondary:hover {
+            background-color: #5a6268;
+        }
         h2, h3 {
             color: #333;
             margin-top: 0;
@@ -196,11 +202,52 @@
         }
         .template-professional .main {
             flex: 1;
-            padding: 20px;
+            padding: 12px 20px 20px 20px;
             box-sizing: border-box;
         }
         .template-professional .main h1 {
             margin-top: 0;
+        }
+        .template-professional .sidebar .skills-bullets {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            font-size: 12px;
+        }
+        .template-professional .sidebar .skills-bullets li {
+            margin-bottom: 4px;
+            word-wrap: break-word;
+        }
+        .template-professional .sidebar .skills-bullets li::before {
+            content: "• ";
+            font-weight: bold;
+        }
+        .template-professional .main .exp-line {
+            display: block;
+            font-weight: bold;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            line-height: 1.35;
+        }
+        .skills-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 6px;
+        }
+        .skill-tag {
+            display: inline-block;
+            font-size: 11px;
+            padding: 4px 8px;
+            border-radius: 3px;
+        }
+        .template-modern .skill-tag {
+            background: rgb(220, 235, 255);
+            color: rgb(30, 90, 150);
+        }
+        .template-creative .skill-tag {
+            background: rgb(230, 240, 255);
+            color: rgb(40, 167, 69);
         }
 
         /* === Creative: цветные полосы сверху === */
@@ -377,6 +424,17 @@
             return true;
         }
 
+        // Тире в периодах: ASCII -, en –, em — (как на сервере)
+        function normalizePeriodSeparators(str) {
+            return str.replace(/\u2014/g, '-').replace(/\u2013/g, '-');
+        }
+        function splitPeriodRangeOnce(value) {
+            const norm = normalizePeriodSeparators(value.trim());
+            const i = norm.indexOf('-');
+            if (i < 0) return null;
+            return [norm.slice(0, i).trim(), norm.slice(i + 1).trim()];
+        }
+
         // Валидация периода работы
         function validateWorkPeriod(input) {
             const value = input.value.trim();
@@ -390,10 +448,10 @@
 
             // Check for "месяц YYYY - н.в." or "месяц YYYY - настоящее время" format
             if (value.includes('н.в.') || value.includes('настоящее время')) {
-                const parts = value.split('-');
-                if (parts.length >= 2) {
-                    const startPart = parts[0].trim();
-                    const yearMatch = startPart.match(/\d{4}/);
+                const parts = splitPeriodRangeOnce(value);
+                if (parts) {
+                    const startPart = parts[0];
+                    const yearMatch = startPart.match(/[12]\d{3}/);
                     if (yearMatch) {
                         const startYear = parseInt(yearMatch[0]);
                         if (startYear > currentYear) {
@@ -408,48 +466,38 @@
                 return true;
             }
 
-            // Check for date range with dash
-            if (value.includes('-')) {
-                const parts = value.split('-');
-                if (parts.length === 2) {
-                    const startPart = parts[0].trim();
-                    const endPart = parts[1].trim();
-                    
-                    // Extract years from both parts
-                    const startYearMatch = startPart.match(/\d{4}/);
-                    const endYearMatch = endPart.match(/\d{4}/);
-                    
-                    if (!startYearMatch || !endYearMatch) {
-                        input.style.borderColor = '#ff6b6b';
-                        input.title = 'Укажите год в формате YYYY';
-                        return false;
-                    }
-                    
-                    const startYear = parseInt(startYearMatch[0]);
-                    const endYear = parseInt(endYearMatch[0]);
-                    
-                    if (startYear >= endYear) {
-                        input.style.borderColor = '#ff6b6b';
-                        input.title = 'Год начала должен быть меньше года окончания';
-                        return false;
-                    }
-                    if (endYear > currentYear) {
-                        input.style.borderColor = '#ff6b6b';
-                        input.title = 'Год окончания не может быть в будущем';
-                        return false;
-                    }
-                    if (startYear > currentYear) {
-                        input.style.borderColor = '#ff6b6b';
-                        input.title = 'Год начала работы не должен быть в будущем';
-                        return false;
-                    }
-                } else {
+            if (normalizePeriodSeparators(value).includes('-')) {
+                const two = splitPeriodRangeOnce(value);
+                if (!two) {
                     input.style.borderColor = '#ff6b6b';
-                    input.title = 'Используйте формат: YYYY - YYYY или Месяц YYYY - Месяц YYYY или Месяц YYYY - н.в.';
+                    input.title = 'Используйте формат: YYYY - YYYY или Месяц YYYY — Месяц YYYY';
+                    return false;
+                }
+                const startYearMatch = two[0].match(/[12]\d{3}/);
+                const endYearMatch = two[1].match(/[12]\d{3}/);
+                if (!startYearMatch || !endYearMatch) {
+                    input.style.borderColor = '#ff6b6b';
+                    input.title = 'Укажите год в формате YYYY в каждой части';
+                    return false;
+                }
+                const startYear = parseInt(startYearMatch[0]);
+                const endYear = parseInt(endYearMatch[0]);
+                if (startYear >= endYear) {
+                    input.style.borderColor = '#ff6b6b';
+                    input.title = 'Год начала должен быть меньше года окончания';
+                    return false;
+                }
+                if (endYear > currentYear) {
+                    input.style.borderColor = '#ff6b6b';
+                    input.title = 'Год окончания не может быть в будущем';
+                    return false;
+                }
+                if (startYear > currentYear) {
+                    input.style.borderColor = '#ff6b6b';
+                    input.title = 'Год начала работы не должен быть в будущем';
                     return false;
                 }
             } else {
-                // Single year format
                 const year = parseInt(value);
                 if (isNaN(year)) {
                     input.style.borderColor = '#ff6b6b';
@@ -536,11 +584,10 @@
         // Валидация ФИО
         function validateFullName(input) {
             const value = input.value.trim();
-            const isValid = value.length > 0 && value.length <= 100;
-            
-            if (!isValid && value.length > 0) {
+            const isValid = value.length > 0;
+            if (!isValid) {
                 input.style.borderColor = '#ff6b6b';
-                input.title = 'ФИО должно быть 1-100 символов';
+                input.title = 'Укажите ФИО';
             } else {
                 input.style.borderColor = '';
                 input.title = '';
@@ -556,46 +603,23 @@
                 input.title = '';
                 return true;
             }
-            if (value.length > 100) {
-                input.style.borderColor = '#ff6b6b';
-                input.title = 'Город должен быть <=100 символов';
-                return false;
-            }
             input.style.borderColor = '';
             input.title = '';
             return true;
         }
 
-        // Валидация описания (Summary, Extra)
+        // Валидация описания (Summary, Extra) — без лимита длины
         function validateDescription(input) {
-            const value = input.value.trim();
-            const maxLength = input.name === 'summary' ? 1000 : 1000;
-            const isValid = value.length === 0 || value.length <= maxLength;
-            
-            if (!isValid) {
-                input.style.borderColor = '#ff6b6b';
-                input.title = `Максимум ${maxLength} символов (сейчас: ${value.length})`;
-            } else {
-                input.style.borderColor = '';
-                input.title = '';
-            }
-            return isValid;
+            input.style.borderColor = '';
+            input.title = '';
+            return true;
         }
 
-        // Валидация навыков
+        // Валидация навыков — без лимита длины
         function validateSkills(input) {
-            const value = input.value.trim();
-            const maxLength = 1000;
-            const isValid = value.length === 0 || value.length <= maxLength;
-            
-            if (!isValid) {
-                input.style.borderColor = '#ff6b6b';
-                input.title = `Максимум ${maxLength} символов`;
-            } else {
-                input.style.borderColor = '';
-                input.title = '';
-            }
-            return isValid;
+            input.style.borderColor = '';
+            input.title = '';
+            return true;
         }
 
         // Обработка загруженной фотографии
@@ -700,9 +724,6 @@
             if (!fullnameInput || !fullnameInput.value.trim()) {
                 errors.push('ФИО обязательно');
                 fullnameInput && (fullnameInput.style.borderColor = '#ff6b6b');
-            } else if (fullnameInput.value.trim().length > 100) {
-                errors.push('ФИО не должно превышать 100 символов');
-                fullnameInput.style.borderColor = '#ff6b6b';
             } else {
                 fullnameInput.style.borderColor = '';
             }
@@ -741,11 +762,6 @@
                 cityInput && (cityInput.style.borderColor = '#ff6b6b');
                 const errorSpan = cityInput && cityInput.parentElement.querySelector('.city-error');
                 if (errorSpan) errorSpan.textContent = '❌ Город обязателен';
-            } else if (cityInput.value.trim().length > 100) {
-                errors.push('Город не должен превышать 100 символов');
-                cityInput.style.borderColor = '#ff6b6b';
-                const errorSpan = cityInput.parentElement.querySelector('.city-error');
-                if (errorSpan) errorSpan.textContent = '❌ Максимум 100 символов';
             } else {
                 cityInput.style.borderColor = '';
                 const errorSpan = cityInput.parentElement.querySelector('.city-error');
@@ -755,27 +771,9 @@
             // Если для города есть проверка на валидность из сервера, показываем её
             // Город НЕ блокирует отправку, только показывает уведомление
             
-            // Проверяем описания (необязательно но если есть - проверяем длину)
-            if (summaryInput && summaryInput.value.length > 1000) {
-                errors.push('Краткая информация не должна превышать 1000 символов');
-                summaryInput.style.borderColor = '#ff6b6b';
-            } else if (summaryInput) {
-                summaryInput.style.borderColor = '';
-            }
-            
-            if (skillsInput && skillsInput.value.length > 1000) {
-                errors.push('Навыки не должны превышать 1000 символов');
-                skillsInput.style.borderColor = '#ff6b6b';
-            } else if (skillsInput) {
-                skillsInput.style.borderColor = '';
-            }
-            
-            if (extraInput && extraInput.value.length > 1000) {
-                errors.push('Доп. информация не должна превышать 1000 символов');
-                extraInput.style.borderColor = '#ff6b6b';
-            } else if (extraInput) {
-                extraInput.style.borderColor = '';
-            }
+            if (summaryInput) summaryInput.style.borderColor = '';
+            if (skillsInput) skillsInput.style.borderColor = '';
+            if (extraInput) extraInput.style.borderColor = '';
             
             // Если есть ошибки - показываем и не отправляем
             if (errors.length > 0) {
@@ -787,16 +785,16 @@
             const data = new FormData(form);
             fetch('/generate', { method: 'POST', body: data })
                 .then(resp => {
-                    // Проверяем если это JSON ошибка
                     if (resp.status === 400) {
                         return resp.json().then(json => {
-                            throw new Error(json.error);
+                            throw new Error(json.error || 'Ошибка валидации');
                         });
                     }
                     if (!resp.ok) {
-                        throw new Error('Ошибка при генерировании PDF');
+                        return resp.text().then((text) => {
+                            throw new Error(text.trim() || ('HTTP ' + resp.status + ': не удалось сгенерировать PDF'));
+                        });
                     }
-                    // Если успешно, скачиваем PDF
                     return resp.blob().then(blob => {
                         const url = window.URL.createObjectURL(blob);
                         const a = document.createElement('a');
@@ -863,6 +861,63 @@
                 .catch(err => console.log('Preview error:', err));
         }
 
+        async function loadDemoResume() {
+            const form = document.getElementById('resume-form');
+            if (!form) return;
+            try {
+                const resp = await fetch('/static/demo_resume.json');
+                if (!resp.ok) throw new Error('HTTP ' + resp.status);
+                const d = await resp.json();
+                form.fullname.value = d.fullname || '';
+                form.phone.value = d.phone || '';
+                form.email.value = d.email || '';
+                form.city.value = d.city || '';
+                form.summary.value = d.summary || '';
+                if (form.skills) form.skills.value = d.skills || '';
+                if (form.extra) form.extra.value = d.extra || '';
+                if (form.template) form.template.value = d.template || 'classic';
+                document.querySelectorAll('#education-container .education-entry').forEach((el) => el.remove());
+                document.querySelectorAll('#experience-container .experience-entry').forEach((el) => el.remove());
+                (d.education || []).forEach((edu) => {
+                    addEducation();
+                    const list = document.querySelectorAll('#education-container .education-entry');
+                    const entry = list[list.length - 1];
+                    const schoolEl = entry.querySelector('input[name="edu_school"]');
+                    const yearEl = entry.querySelector('input[name="edu_year"]');
+                    if (schoolEl) schoolEl.value = edu.school || '';
+                    if (yearEl) yearEl.value = edu.year || '';
+                });
+                (d.experience || []).forEach((exp) => {
+                    addExperience();
+                    const list = document.querySelectorAll('#experience-container .experience-entry');
+                    const entry = list[list.length - 1];
+                    const posEl = entry.querySelector('input[name="exp_position"]');
+                    const compEl = entry.querySelector('input[name="exp_company"]');
+                    const perEl = entry.querySelector('input[name="exp_period"]');
+                    const achEl = entry.querySelector('textarea[name="exp_achievements"]');
+                    if (posEl) posEl.value = exp.position || '';
+                    if (compEl) compEl.value = exp.company || '';
+                    if (perEl) perEl.value = exp.period || '';
+                    if (achEl) {
+                        achEl.value = Array.isArray(exp.achievements)
+                            ? exp.achievements.join('\n')
+                            : (exp.achievements || '');
+                    }
+                });
+                const photoInput = form.querySelector('input[name="photo"]');
+                if (photoInput) photoInput.value = '';
+                const photoPreview = document.getElementById('photo-preview');
+                if (photoPreview) photoPreview.style.display = 'none';
+                const photoImg = document.getElementById('photo-image');
+                if (photoImg) photoImg.src = '';
+                updateEducationListeners();
+                updateExperienceListeners();
+                updatePreview();
+            } catch (e) {
+                alert('Не удалось загрузить демо-данные: ' + e.message);
+            }
+        }
+
         // Инициализация всех listeners при загрузке страницы
         function initializeFormListeners() {
             const form = document.getElementById('resume-form');
@@ -876,16 +931,6 @@
             const summaryInput = form.querySelector('textarea[name="summary"]');
             const skillsInput = form.querySelector('input[name="skills"]');
             const extraInput = form.querySelector('textarea[name="extra"]');
-            
-            // Добавляем default entries если контейнеры пусты
-            const educationContainer = document.getElementById('education-container');
-            const experienceContainer = document.getElementById('experience-container');
-            if (educationContainer.children.length === 1) { // Только h3
-                addEducation();
-            }
-            if (experienceContainer.children.length === 1) { // Только h3
-                addExperience();
-            }
             
             // Инициализируем при загрузке
             updateEducationListeners();
@@ -973,8 +1018,6 @@
         function validateEducationYear(input) {
             const value = input.value.trim();
             const currentYear = new Date().getFullYear();
-            const months = ['январь|января', 'февраль|февраля', 'март|марта', 'апрель|апреля', 'май|мая', 'июнь|июня',
-                           'июль|июля', 'август|августа', 'сентябрь|сентября', 'октябрь|октября', 'ноябрь|ноября', 'декабрь|декабря'];
             
             if (value === '') {
                 input.style.borderColor = '';
@@ -982,12 +1025,10 @@
                 return true;
             }
             
-            // Check for "месяц YYYY - н.в." or "месяц YYYY - настоящее время" format
             if (value.includes('н.в.') || value.includes('настоящее время')) {
-                const parts = value.split('-');
-                if (parts.length >= 2) {
-                    const startPart = parts[0].trim();
-                    const yearMatch = startPart.match(/\d{4}/);
+                const parts = splitPeriodRangeOnce(value);
+                if (parts) {
+                    const yearMatch = parts[0].match(/[12]\d{3}/);
                     if (yearMatch) {
                         const startYear = parseInt(yearMatch[0]);
                         if (startYear > currentYear) {
@@ -1002,48 +1043,38 @@
                 return true;
             }
             
-            // Check for date range with dash
-            if (value.includes('-')) {
-                const parts = value.split('-');
-                if (parts.length === 2) {
-                    const startPart = parts[0].trim();
-                    const endPart = parts[1].trim();
-                    
-                    // Extract years from both parts
-                    const startYearMatch = startPart.match(/\d{4}/);
-                    const endYearMatch = endPart.match(/\d{4}/);
-                    
-                    if (!startYearMatch || !endYearMatch) {
-                        input.style.borderColor = '#ff6b6b';
-                        input.title = 'Укажите год в формате YYYY';
-                        return false;
-                    }
-                    
-                    const startYear = parseInt(startYearMatch[0]);
-                    const endYear = parseInt(endYearMatch[0]);
-                    
-                    if (startYear >= endYear) {
-                        input.style.borderColor = '#ff6b6b';
-                        input.title = 'Год начала должен быть меньше года окончания';
-                        return false;
-                    }
-                    if (endYear > currentYear) {
-                        input.style.borderColor = '#ff6b6b';
-                        input.title = 'Год окончания не должен быть в будущем';
-                        return false;
-                    }
-                    if (startYear > currentYear) {
-                        input.style.borderColor = '#ff6b6b';
-                        input.title = 'Год начала не должен быть в будущем';
-                        return false;
-                    }
-                } else {
+            if (normalizePeriodSeparators(value).includes('-')) {
+                const two = splitPeriodRangeOnce(value);
+                if (!two) {
                     input.style.borderColor = '#ff6b6b';
-                    input.title = 'Используйте формат: YYYY - YYYY или Месяц YYYY - Месяц YYYY или Месяц YYYY - н.в.';
+                    input.title = 'Используйте формат: YYYY - YYYY или Месяц YYYY — Месяц YYYY';
+                    return false;
+                }
+                const startYearMatch = two[0].match(/[12]\d{3}/);
+                const endYearMatch = two[1].match(/[12]\d{3}/);
+                if (!startYearMatch || !endYearMatch) {
+                    input.style.borderColor = '#ff6b6b';
+                    input.title = 'Укажите год в формате YYYY в каждой части';
+                    return false;
+                }
+                const startYear = parseInt(startYearMatch[0]);
+                const endYear = parseInt(endYearMatch[0]);
+                if (startYear >= endYear) {
+                    input.style.borderColor = '#ff6b6b';
+                    input.title = 'Год начала должен быть меньше года окончания';
+                    return false;
+                }
+                if (endYear > currentYear) {
+                    input.style.borderColor = '#ff6b6b';
+                    input.title = 'Год окончания не должен быть в будущем';
+                    return false;
+                }
+                if (startYear > currentYear) {
+                    input.style.borderColor = '#ff6b6b';
+                    input.title = 'Год начала не должен быть в будущем';
                     return false;
                 }
             } else {
-                // Single year format
                 const year = parseInt(value);
                 if (isNaN(year)) {
                     input.style.borderColor = '#ff6b6b';
@@ -1158,22 +1189,26 @@
 <body>
 <div id="form">
     <h2>Заполните резюме</h2>
+    <p style="font-size:14px;color:#555;margin:0 0 12px 0;line-height:1.4;">
+        <button type="button" class="btn-secondary" onclick="loadDemoResume()">Загрузить демо для проверки вёрстки</button>
+        <span style="margin-left:8px;">данные из <code>/static/demo_resume.json</code> (фото не подставляется).</span>
+    </p>
     <form id="resume-form" action="/generate" method="post" enctype="multipart/form-data" oninput="debouncedUpdatePreview()" onsubmit="handleFormSubmit(event)">
         <div class="section">
-            <label>ФИО: <input type="text" name="fullname" maxlength="100" placeholder="Иван Иванов" required></label>
+            <label>ФИО: <input type="text" name="fullname" placeholder="Иван Иванов" required></label>
             
-            <label>Телефон: <input type="tel" name="phone" placeholder="+7 (9XX) XXX-XX-XX" maxlength="20" required></label>
+            <label>Телефон: <input type="tel" name="phone" placeholder="+7 (9XX) XXX-XX-XX" maxlength="32" required></label>
             
-            <label>Email: <input type="email" name="email" maxlength="100" placeholder="example@mail.com" required></label>
+            <label>Email: <input type="email" name="email" placeholder="example@mail.com" required></label>
             
-            <label>Город: <input type="text" name="city" maxlength="100" placeholder="Москва" list="cities-list" required></label>
+            <label>Город: <input type="text" name="city" placeholder="Москва" list="cities-list" required></label>
             <span class="city-error" style="color: #ff6b6b; font-size: 12px; display: block; margin-top: -6px; margin-bottom: 8px;"></span>
             <datalist id="cities-list"></datalist>
             <datalist id="institutions-list"></datalist>
         </div>
         <div class="section">
             <label>Краткая информация:<br>
-            <textarea name="summary" maxlength="1000"></textarea></label>
+            <textarea name="summary" rows="8"></textarea></label>
         </div>
         <div class="section" id="education-container">
             <h3>Образование</h3>
@@ -1190,7 +1225,7 @@
         </div>
         <div class="section">
             <label>Дополнительная информация:<br>
-            <textarea name="extra" maxlength="1000"></textarea></label>
+            <textarea name="extra" rows="6"></textarea></label>
         </div>
         <div class="section">
             <label>Фотография: <input type="file" name="photo" accept="image/png, image/jpeg"></label>

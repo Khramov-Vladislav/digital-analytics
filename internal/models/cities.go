@@ -2126,13 +2126,3 @@ func AutocompleteInstitutions(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(matches)
 }
-
-// Валидация учебного заведения
-func validateInstitution(institution string) bool {
-	for _, i := range institutions {
-		if strings.EqualFold(i, institution) {
-			return true
-		}
-	}
-	return false
-}

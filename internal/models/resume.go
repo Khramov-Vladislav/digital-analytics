@@ -2,7 +2,6 @@ package models
 
 import (
 	"errors"
-	"fmt"
 	"html/template"
 	"image"
 	"mime/multipart"
@@ -14,28 +13,12 @@ import (
 	"unicode/utf8"
 )
 
-// list of allowed cities for autocomplete/validation
-var allowedCities = []string{
-	"Москва", "Санкт-Петербург", "Новосибирск", "Екатеринбург",
-	"Казань", "Нижний Новгород", "Челябинск", "Самара",
-	"Омск", "Ростов-на-Дону", "Уфа", "Красноярск",
-	"Воронеж", "Пермь", "Волгоград", "Краснодар",
-	"Саратов", "Тюмень", "Тольятти", "Ижевск",
-	"Барнаул", "Ульяновск", "Иркутск", "Хабаровск",
-	"Ярославль", "Владивосток", "Махачкала", "Томск",
-}
-
 func isValidCity(city string) bool {
 	city = strings.TrimSpace(city)
 	if city == "" {
 		return true // empty allowed, required constraint handled elsewhere
 	}
-	for _, c := range allowedCities {
-		if strings.EqualFold(c, city) {
-			return true
-		}
-	}
-	return false
+	return validateCity(city)
 }
 
 // Resume holds all fields collected from the form.
@@ -169,36 +152,6 @@ func capitalizeCity(city string) string {
 	return b.String()
 }
 
-// validateYears checks if education years are logically correct
-func validateYears(startYearStr, endYearStr string) error {
-	if startYearStr == "" && endYearStr == "" {
-		return nil // Both empty is ok
-	}
-
-	startYear, errStart := strconv.Atoi(strings.TrimSpace(startYearStr))
-	endYear, errEnd := strconv.Atoi(strings.TrimSpace(endYearStr))
-
-	if errStart != nil || errEnd != nil {
-		return errors.New("education years must be valid numbers")
-	}
-
-	if startYear >= endYear {
-		return errors.New("education start year must be before end year")
-	}
-
-	yearsDiff := endYear - startYear
-	if yearsDiff > 6 {
-		return errors.New("education duration cannot exceed 6 years")
-	}
-
-	currentYear := time.Now().Year()
-	if endYear > currentYear {
-		return fmt.Errorf("education end year cannot be in the future (current year: %d)", currentYear)
-	}
-
-	return nil
-}
-
 // validateEducationYear checks if education year/period is valid
 func validateEducationYear(year string) error {
 	if year == "" {
@@ -210,12 +163,10 @@ func validateEducationYear(year string) error {
 
 	// Check for "месяц YYYY - н.в." or "месяц YYYY - настоящее время" format (current/present)
 	if strings.Contains(trimmedYear, "н.в.") || strings.Contains(trimmedYear, "настоящее время") {
-		// Extract start year from format like "Март 2021 - н.в."
-		parts := strings.Split(trimmedYear, "-")
-		if len(parts) < 2 {
+		startPart, _, ok := splitPeriodOnFirstDash(trimmedYear)
+		if !ok {
 			return errors.New("invalid education period format")
 		}
-		startPart := strings.TrimSpace(parts[0])
 		startYear := extractYear(startPart)
 		if startYear == 0 {
 			return errors.New("education start year must be a valid number in format YYYY")
@@ -226,15 +177,16 @@ func validateEducationYear(year string) error {
 		return nil
 	}
 
-	// Check for "YYYY - YYYY" or "Month YYYY - Month YYYY" format
-	if strings.Contains(trimmedYear, "-") {
-		parts := strings.Split(trimmedYear, "-")
-		if len(parts) != 2 {
+	// Check for "YYYY - YYYY" or "Month YYYY — Month YYYY" format (ASCII or typographic dash)
+	normYear := normalizePeriodDashes(trimmedYear)
+	if strings.Contains(normYear, "-") {
+		startStr, endStr, ok := splitPeriodOnFirstDash(trimmedYear)
+		if !ok {
 			return errors.New("invalid education period format, use 'YYYY - YYYY' or 'Month YYYY - Month YYYY' or 'Month YYYY - н.в.'")
 		}
 
-		startYear := extractYear(strings.TrimSpace(parts[0]))
-		endYear := extractYear(strings.TrimSpace(parts[1]))
+		startYear := extractYear(startStr)
+		endYear := extractYear(endStr)
 
 		if startYear == 0 || endYear == 0 {
 			return errors.New("education years must contain valid numbers in format YYYY")
@@ -268,10 +220,27 @@ func validateEducationYear(year string) error {
 	return nil
 }
 
-// extractYear extracts a 4-digit year from a string (handles both "YYYY" and "Month YYYY" formats)
+// normalizePeriodDashes converts typographic dashes to ASCII hyphen for range parsing.
+func normalizePeriodDashes(s string) string {
+	s = strings.ReplaceAll(s, "\u2014", "-") // em dash —
+	s = strings.ReplaceAll(s, "\u2013", "-") // en dash –
+	return s
+}
+
+// splitPeriodOnFirstDash splits "left — right" or "left - right" into two trimmed parts.
+func splitPeriodOnFirstDash(s string) (left, right string, ok bool) {
+	n := normalizePeriodDashes(strings.TrimSpace(s))
+	i := strings.Index(n, "-")
+	if i < 0 {
+		return "", "", false
+	}
+	return strings.TrimSpace(n[:i]), strings.TrimSpace(n[i+1:]), true
+}
+
+// extractYear extracts a 4-digit year from a string (handles both "YYYY" and "Month YYYY" formats).
+// Uses a digit rune match because Go's \b is ASCII-centric and misses years after Cyrillic text.
 func extractYear(str string) int {
-	// Look for 4 consecutive digits
-	re := regexp.MustCompile(`\b\d{4}\b`)
+	re := regexp.MustCompile(`[12][0-9]{3}`)
 	match := re.FindString(str)
 	if match == "" {
 		return 0
@@ -294,12 +263,10 @@ func validateWorkPeriod(period string) error {
 
 	// Check for "месяц YYYY - н.в." or "месяц YYYY - настоящее время" format (current/present)
 	if strings.Contains(trimmedPeriod, "н.в.") || strings.Contains(trimmedPeriod, "настоящее время") {
-		// Extract start year from format like "Март 2021 - н.в."
-		parts := strings.Split(trimmedPeriod, "-")
-		if len(parts) < 2 {
+		startPart, _, ok := splitPeriodOnFirstDash(trimmedPeriod)
+		if !ok {
 			return errors.New("invalid work period format")
 		}
-		startPart := strings.TrimSpace(parts[0])
 		startYear := extractYear(startPart)
 		if startYear == 0 {
 			return errors.New("work start year must be a valid number in format YYYY")
@@ -310,15 +277,15 @@ func validateWorkPeriod(period string) error {
 		return nil
 	}
 
-	// Check for "YYYY - YYYY" or "Month YYYY - Month YYYY" format
-	if strings.Contains(trimmedPeriod, "-") {
-		parts := strings.Split(trimmedPeriod, "-")
-		if len(parts) != 2 {
+	normPeriod := normalizePeriodDashes(trimmedPeriod)
+	if strings.Contains(normPeriod, "-") {
+		startStr, endStr, ok := splitPeriodOnFirstDash(trimmedPeriod)
+		if !ok {
 			return errors.New("invalid work period format, use 'YYYY - YYYY' or 'Month YYYY - Month YYYY' or 'Month YYYY - н.в.'")
 		}
 
-		startYear := extractYear(strings.TrimSpace(parts[0]))
-		endYear := extractYear(strings.TrimSpace(parts[1]))
+		startYear := extractYear(startStr)
+		endYear := extractYear(endStr)
 
 		if startYear == 0 || endYear == 0 {
 			return errors.New("work period years must contain valid numbers in format YYYY")
@@ -354,37 +321,30 @@ func validateWorkPeriod(period string) error {
 
 // Validate performs basic checks on the resume fields according to constraints.
 func (r *Resume) Validate() error {
-	if utf8.RuneCountInString(r.FullName) == 0 || utf8.RuneCountInString(r.FullName) > 100 {
-		return errors.New("full name is required and must be <=100 characters")
+	if utf8.RuneCountInString(r.FullName) == 0 {
+		return errors.New("full name is required")
 	}
 
-	if len(r.Email) == 0 || len(r.Email) > 100 {
-		return errors.New("email is required and must be <=100 characters")
+	if len(r.Email) == 0 {
+		return errors.New("email is required")
 	}
 	if !isValidEmail(r.Email) {
 		return errors.New("email format is invalid")
 	}
 
-	if len(r.Phone) == 0 || len(r.Phone) > 50 {
-		return errors.New("phone is required and must be <=50 characters")
+	if len(r.Phone) == 0 {
+		return errors.New("phone is required")
 	}
 	if !isValidPhone(r.Phone) {
 		return errors.New("phone number must contain 10-15 digits and be in valid international format")
 	}
 
-	if len(r.City) > 100 {
-		return errors.New("city must be <=100 characters")
-	}
 	if len(r.City) == 0 {
 		return errors.New("city is required")
 	}
 	if !isValidCity(r.City) {
 		return errors.New("city is not in the allowed list")
 	}
-	if len(r.Summary) > 1000 {
-		return errors.New("summary must be <=1000 characters")
-	}
-
 	// Validate education years
 	for _, edu := range r.Education {
 		if edu.Year != "" {

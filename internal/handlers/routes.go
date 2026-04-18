@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"html/template"
 	"io"
@@ -216,10 +217,9 @@ func generateHandler(w http.ResponseWriter, r *http.Request) {
 	resume.NormalizeData()
 
 	if err := resume.Validate(); err != nil {
-		// Return JSON error instead of plain text for better frontend handling
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusBadRequest)
-		fmt.Fprintf(w, `{"error": "%s"}`, err.Error())
+		_ = json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})
 		return
 	}
 	pdfBytes, err := pdf.Generate(resume)

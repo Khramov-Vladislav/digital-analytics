@@ -169,7 +169,7 @@
         width: 30%;
         background: rgb(45,45,48);
         color: white;
-        padding: 15pt;
+        padding: 10pt 12pt 15pt 12pt;
         flex-shrink: 0;
         overflow-y: auto;
     }
@@ -201,24 +201,24 @@
 
     .template-professional .main {
         flex: 1;
-        padding: 20pt 15pt;
+        padding: 10pt 15pt 15pt 15pt;
         overflow-y: auto;
     }
 
     .template-professional h1 {
         color: #000;
-        margin-bottom: 3pt;
+        margin: 0 0 4pt 0;
         border-bottom: 2pt solid rgb(45,45,48);
-        padding-bottom: 6pt;
+        padding-bottom: 5pt;
         word-wrap: break-word;
         overflow-wrap: break-word;
     }
 
     .template-professional h3 {
         color: rgb(45,45,48);
-        margin: 12pt 0 6pt 0;
+        margin: 10pt 0 5pt 0;
         text-transform: uppercase;
-        font-size: 11pt;
+        font-size: 10pt;
     }
 
     .template-professional .entry {
@@ -323,6 +323,56 @@
         display: table;
         clear: both;
     }
+
+    /* Skills as tags (modern & creative PDF) */
+    .skills-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5pt;
+        margin-top: 4pt;
+        align-items: flex-start;
+    }
+    .skill-tag {
+        display: inline-block;
+        font-size: 8pt;
+        padding: 3pt 6pt;
+        border-radius: 2pt;
+        line-height: 1.2;
+    }
+    .template-modern .skill-tag {
+        background: rgb(220, 235, 255);
+        color: rgb(30, 90, 150);
+    }
+    .template-creative .skill-tag {
+        background: rgb(230, 240, 255);
+        color: rgb(40, 167, 69);
+    }
+
+    /* Professional: sidebar bullets = PDF */
+    .template-professional .sidebar .skills-bullets {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    .template-professional .sidebar .skills-bullets li {
+        font-size: 8.5pt;
+        margin-bottom: 3pt;
+        line-height: 1.45;
+        word-wrap: break-word;
+    }
+    .template-professional .sidebar .skills-bullets li::before {
+        content: "• ";
+        font-weight: bold;
+    }
+    .template-professional .main .exp-line {
+        display: block;
+        font-weight: bold;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        max-width: 100%;
+        font-size: 10pt;
+        line-height: 1.35;
+    }
 </style>
 </head>
 <body>
@@ -341,19 +391,19 @@
 
     {{if or .City .Phone .Email}}
     <div class="contact-info">
-        {{if .City}}<p><strong>Город:</strong> {{.City}}</p>{{end}}
         {{if .Phone}}<p><strong>Телефон:</strong> {{.Phone}}</p>{{end}}
         {{if .Email}}<p><strong>Email:</strong> {{.Email}}</p>{{end}}
+        {{if .City}}<p><strong>Город:</strong> {{.City}}</p>{{end}}
     </div>
     {{end}}
 
     {{if .Summary}}
-    <h3>Краткая информация</h3>
+    <h3>ПРОФИЛЬНАЯ ИНФОРМАЦИЯ</h3>
     <p>{{.Summary}}</p>
     {{end}}
 
     {{if .Experience}}
-    <h3>Опыт работы</h3>
+    <h3>ОПЫТ РАБОТЫ</h3>
     {{range .Experience}}
     <div class="entry">
         <strong>{{.Position}}{{if .Company}} — {{.Company}}{{end}}</strong>
@@ -364,7 +414,7 @@
     {{end}}
 
     {{if .Education}}
-    <h3>Образование</h3>
+    <h3>ОБРАЗОВАНИЕ</h3>
     {{range .Education}}
     <div class="entry">
         <strong>{{.School}}</strong>
@@ -374,12 +424,12 @@
     {{end}}
 
     {{if .Skills}}
-    <h3>Навыки</h3>
+    <h3>НАВЫКИ</h3>
     <p>{{join .Skills ", "}}</p>
     {{end}}
 
     {{if .Extra}}
-    <h3>Дополнительно</h3>
+    <h3>ДОПОЛНИТЕЛЬНО</h3>
     <p>{{.Extra}}</p>
     {{end}}
 </div>
@@ -406,12 +456,12 @@
 
     <div class="content">
         {{if .Summary}}
-        <h3>Краткая информация</h3>
+        <h3>КРАТКАЯ ИНФОРМАЦИЯ</h3>
         <p>{{.Summary}}</p>
         {{end}}
 
         {{if .Experience}}
-        <h3>Опыт работы</h3>
+        <h3>ОПЫТ РАБОТЫ</h3>
         {{range .Experience}}
         <div class="entry">
             <strong>{{.Position}}{{if .Company}} — {{.Company}}{{end}}</strong>
@@ -422,7 +472,7 @@
         {{end}}
 
         {{if .Education}}
-        <h3>Образование</h3>
+        <h3>ОБРАЗОВАНИЕ</h3>
         {{range .Education}}
         <div class="entry">
             <strong>{{.School}}</strong>
@@ -432,12 +482,14 @@
         {{end}}
 
         {{if .Skills}}
-        <h3>Навыки</h3>
-        <p>{{join .Skills ", "}}</p>
+        <h3>НАВЫКИ</h3>
+        <div class="skills-tags">
+            {{range .Skills}}{{if .}}<span class="skill-tag">{{.}}</span>{{end}}{{end}}
+        </div>
         {{end}}
 
         {{if .Extra}}
-        <h3>Дополнительно</h3>
+        <h3>ДОПОЛНИТЕЛЬНО</h3>
         <p>{{.Extra}}</p>
         {{end}}
     </div>
@@ -449,33 +501,28 @@
 <div class="preview-root template-professional">
     <div class="sidebar">
         {{if .PhotoURL}}
-        <div class="photo-section" style="text-align: center; margin-bottom: 10pt;">
+        <div class="photo-section" style="text-align: center; margin-bottom: 8pt;">
             <img src="{{.PhotoURL}}" alt="Фото" style="max-width: 100px;">
         </div>
         {{end}}
 
         {{if or .City .Phone .Email}}
         <div class="sidebar-section">
-            <h3>Контакты</h3>
+            <h3>КОНТАКТЫ</h3>
             <div class="contact-info">
-                {{if .City}}<p><strong>Город:</strong></p><p>{{.City}}</p>{{end}}
-                {{if .Phone}}<p><strong>Телефон:</strong></p><p>{{.Phone}}</p>{{end}}
-                {{if .Email}}<p><strong>Email:</strong></p><p>{{.Email}}</p>{{end}}
+                {{if .Phone}}<p><strong>Телефон:</strong> {{.Phone}}</p>{{end}}
+                {{if .Email}}<p><strong>Email:</strong> {{.Email}}</p>{{end}}
+                {{if .City}}<p><strong>Город:</strong> {{.City}}</p>{{end}}
             </div>
         </div>
         {{end}}
 
         {{if .Skills}}
         <div class="sidebar-section">
-            <h3>Навыки</h3>
-            <p>{{join .Skills ", "}}</p>
-        </div>
-        {{end}}
-
-        {{if .Extra}}
-        <div class="sidebar-section">
-            <h3>Дополнительно</h3>
-            <p>{{.Extra}}</p>
+            <h3>НАВЫКИ</h3>
+            <ul class="skills-bullets">
+                {{range .Skills}}{{if .}}<li>{{.}}</li>{{end}}{{end}}
+            </ul>
         </div>
         {{end}}
     </div>
@@ -484,15 +531,15 @@
         <h1>{{.FullName}}</h1>
 
         {{if .Summary}}
-        <h3>Краткая информация</h3>
+        <h3>ПРОФИЛЬ</h3>
         <p>{{.Summary}}</p>
         {{end}}
 
         {{if .Experience}}
-        <h3>Опыт работы</h3>
+        <h3>ОПЫТ РАБОТЫ</h3>
         {{range .Experience}}
         <div class="entry">
-            <strong>{{.Position}}{{if .Company}} — {{.Company}}{{end}}</strong>
+            <span class="exp-line">{{.Position}}{{if .Company}} • {{.Company}}{{end}}</span>
             <p style="color: #666; font-size: 8pt;">{{.Period}}</p>
             {{range .Achievements}}<p>• {{.}}</p>{{end}}
         </div>
@@ -500,13 +547,18 @@
         {{end}}
 
         {{if .Education}}
-        <h3>Образование</h3>
+        <h3>ОБРАЗОВАНИЕ</h3>
         {{range .Education}}
         <div class="entry">
             <strong>{{.School}}</strong>
             {{if .Year}}<p style="color: #666; font-size: 8pt;">{{.Year}}</p>{{end}}
         </div>
         {{end}}
+        {{end}}
+
+        {{if .Extra}}
+        <h3>ДОПОЛНИТЕЛЬНО</h3>
+        <p>{{.Extra}}</p>
         {{end}}
     </div>
 </div>
@@ -537,12 +589,12 @@
 
     <div class="content">
         {{if .Summary}}
-        <h3 class="summary-title">Краткая информация</h3>
+        <h3 class="summary-title">КРАТКАЯ ИНФОРМАЦИЯ</h3>
         <p>{{.Summary}}</p>
         {{end}}
 
         {{if .Experience}}
-        <h3 class="experience-title">Опыт работы</h3>
+        <h3 class="experience-title">ОПЫТ РАБОТЫ</h3>
         {{range .Experience}}
         <div class="entry">
             <strong class="experience-entry">{{.Position}}{{if .Company}} • {{.Company}}{{end}}</strong>
@@ -553,7 +605,7 @@
         {{end}}
 
         {{if .Education}}
-        <h3 class="education-title">Образование</h3>
+        <h3 class="education-title">ОБРАЗОВАНИЕ</h3>
         {{range .Education}}
         <div class="entry">
             <strong>{{.School}}</strong>
@@ -563,12 +615,14 @@
         {{end}}
 
         {{if .Skills}}
-        <h3 class="skills-title">Навыки</h3>
-        <p>{{join .Skills ", "}}</p>
+        <h3 class="skills-title">НАВЫКИ</h3>
+        <div class="skills-tags">
+            {{range .Skills}}{{if .}}<span class="skill-tag">{{.}}</span>{{end}}{{end}}
+        </div>
         {{end}}
 
         {{if .Extra}}
-        <h3 class="extra-title">Дополнительно</h3>
+        <h3 class="extra-title">ДОПОЛНИТЕЛЬНО</h3>
         <p>{{.Extra}}</p>
         {{end}}
     </div>
@@ -588,18 +642,18 @@
     <h1>{{.FullName}}</h1>
 
     <div class="contact-info">
-        <p><strong>Город:</strong> {{.City}}</p>
         <p><strong>Телефон:</strong> {{.Phone}}</p>
         <p><strong>Email:</strong> {{.Email}}</p>
+        <p><strong>Город:</strong> {{.City}}</p>
     </div>
 
     {{if .Summary}}
-    <h3>Краткая информация</h3>
+    <h3>ПРОФИЛЬНАЯ ИНФОРМАЦИЯ</h3>
     <p>{{.Summary}}</p>
     {{end}}
 
     {{if .Experience}}
-    <h3>Опыт работы</h3>
+    <h3>ОПЫТ РАБОТЫ</h3>
     {{range .Experience}}
     <div class="entry">
         <strong>{{.Position}}{{if .Company}} — {{.Company}}{{end}}</strong>
@@ -610,7 +664,7 @@
     {{end}}
 
     {{if .Education}}
-    <h3>Образование</h3>
+    <h3>ОБРАЗОВАНИЕ</h3>
     {{range .Education}}
     <div class="entry">
         <strong>{{.School}}</strong>
@@ -620,12 +674,12 @@
     {{end}}
 
     {{if .Skills}}
-    <h3>Навыки</h3>
+    <h3>НАВЫКИ</h3>
     <p>{{join .Skills ", "}}</p>
     {{end}}
 
     {{if .Extra}}
-    <h3>Дополнительно</h3>
+    <h3>ДОПОЛНИТЕЛЬНО</h3>
     <p>{{.Extra}}</p>
     {{end}}
 </div>
