@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>{{if .FullName}}{{.FullName}}{{else}}Резюме{{end}}</title>
+    <style>
+      @page { margin: 8mm; }
+      body { margin: 0; font-family: Menlo, Consolas, "Courier New", monospace; background: #0b1020; color: #cbd5e1; }
+      * { box-sizing: border-box; }
+      .term {
+        border: 1px solid #334155;
+        border-radius: 16px;
+        overflow: hidden;
+        background: #020617;
+        box-shadow: 0 14px 30px rgba(2, 6, 23, .45);
+      }
+      .bar { height: 34px; background: #111827; border-bottom: 1px solid #334155; display: flex; align-items: center; padding: 0 10px; gap: 8px; }
+      .dot { width: 10px; height: 10px; border-radius: 50%; }
+      .r { background: #ef4444; } .y { background: #f59e0b; } .g { background: #22c55e; }
+      .body { padding: 14px; }
+      .line { margin: 0 0 8px; font-size: 12.5px; line-height: 1.45; white-space: pre-wrap; }
+      .prompt { color: #22c55e; font-weight: 700; }
+      .key { color: #60a5fa; }
+      .val { color: #e2e8f0; }
+      .photo { width: 140px; height: 140px; object-fit: cover; border-radius: 10px; border: 1px solid #334155; margin: 8px 0 12px; }
+      ul { margin: 6px 0 10px 18px; }
+      li { margin: 0 0 4px; font-size: 12.5px; }
+      .sep { border-top: 1px dashed #334155; margin: 10px 0; }
+    </style>
+  </head>
+  <body>
+    <div class="term">
+      <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span></div>
+      <div class="body">
+        <p class="line"><span class="prompt">$</span> <span class="key">whoami</span> <span class="val">{{if .FullName}}{{.FullName}}{{else}}candidate{{end}}</span></p>
+        {{if .PhotoURL}}<img class="photo" src="{{.PhotoURL}}" alt="Фото" />{{end}}
+        <p class="line"><span class="prompt">$</span> <span class="key">contact --show</span></p>
+        {{if .Phone}}<p class="line"><span class="key">phone:</span> <span class="val">{{.Phone}}</span></p>{{end}}
+        {{if .Email}}<p class="line"><span class="key">email:</span> <span class="val">{{.Email}}</span></p>{{end}}
+        {{if .City}}<p class="line"><span class="key">city:</span> <span class="val">{{.City}}</span></p>{{end}}
+        {{if .About}}<div class="sep"></div><p class="line"><span class="prompt">$</span> <span class="key">cat about.txt</span></p><p class="line">{{.About}}</p>{{end}}
+        {{if .Skills}}<div class="sep"></div><p class="line"><span class="prompt">$</span> <span class="key">ls skills/</span></p><ul>{{range splitLines .Skills}}{{if .}}<li>{{.}}</li>{{end}}{{end}}</ul>{{end}}
+        {{if .Experience}}
+          <div class="sep"></div><p class="line"><span class="prompt">$</span> <span class="key">cat experience.log</span></p>
+          {{range .Experience}}<p class="line"><span class="key">* {{.Company}}</span> <span class="val">({{.Period}})</span> - {{.Position}}</p>{{if .Duties}}<p class="line">{{.Duties}}</p>{{end}}{{end}}
+        {{end}}
+        {{if .Education}}
+          <div class="sep"></div><p class="line"><span class="prompt">$</span> <span class="key">cat education.log</span></p>
+          {{range .Education}}<p class="line"><span class="key">* {{.Institution}}</span> <span class="val">({{.Years}})</span> - {{.Specialty}}</p>{{end}}
+        {{end}}
+        {{if .Additional}}<div class="sep"></div><p class="line"><span class="prompt">$</span> <span class="key">cat notes.txt</span></p><p class="line">{{.Additional}}</p>{{end}}
+      </div>
+    </div>
+  </body>
+</html>
+

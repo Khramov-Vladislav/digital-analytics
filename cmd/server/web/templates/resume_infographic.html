@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>{{if .FullName}}{{.FullName}}{{else}}Резюме{{end}}</title>
+    <style>
+      @page { margin: 8mm; }
+      body { margin: 0; font-family: Arial, "Times New Roman", serif; color: #0f172a; background: #f8fafc; }
+      * { box-sizing: border-box; }
+      .grid { display: grid; grid-template-columns: 32% 68%; min-height: 100%; gap: 10px; }
+      .left { background: #e2e8f0; border-radius: 14px; padding: 14px; }
+      .right { border: 1px solid #dbe4ee; border-radius: 14px; padding: 14px; background: #fff; }
+      .photo { width: 140px; height: 140px; border-radius: 50%; object-fit: cover; border: 4px solid #fff; box-shadow: 0 4px 10px rgba(0,0,0,.12); display: block; margin: 0 auto 12px; }
+      .name { margin: 0; text-align: center; font-size: 22px; font-weight: 900; line-height: 1.15; }
+      .contact { margin-top: 10px; font-size: 12px; line-height: 1.4; text-align: center; color: #334155; }
+      .ttl { margin: 14px 0 8px; font-size: 11px; text-transform: uppercase; letter-spacing: .12em; font-weight: 900; color: #0f766e; }
+      .skill { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; margin-bottom: 8px; font-size: 12px; }
+      .bar { height: 6px; background: #cbd5e1; border-radius: 999px; overflow: hidden; }
+      .fill { height: 100%; background: #14b8a6; width: 70%; }
+      .card { border: 1px solid #e2e8f0; border-radius: 12px; padding: 10px; margin-bottom: 10px; }
+      .h { margin: 0; font-size: 13px; font-weight: 800; }
+      .m { margin: 2px 0 0; font-size: 12px; color: #334155; }
+      .b { margin: 6px 0 0; font-size: 12.5px; line-height: 1.45; white-space: pre-wrap; }
+      .text { margin: 0; font-size: 12.5px; line-height: 1.45; white-space: pre-wrap; }
+    </style>
+  </head>
+  <body>
+    <div class="grid">
+      <aside class="left">
+        {{if .PhotoURL}}<img class="photo" src="{{.PhotoURL}}" alt="Фото" />{{end}}
+        <h1 class="name">{{if .FullName}}{{.FullName}}{{else}}ФИО{{end}}</h1>
+        <div class="contact">
+          {{if .Phone}}<div>{{.Phone}}</div>{{end}}
+          {{if .Email}}<div>{{.Email}}</div>{{end}}
+          {{if .City}}<div>{{.City}}</div>{{end}}
+        </div>
+        {{if .Skills}}
+        <h2 class="ttl">Skills</h2>
+        {{range splitLines .Skills}}
+          {{if .}}<div class="skill"><div>{{.}}</div><div class="bar"><div class="fill"></div></div></div>{{end}}
+        {{end}}
+        {{end}}
+        {{if .Additional}}<h2 class="ttl">Extra</h2><p class="text">{{.Additional}}</p>{{end}}
+      </aside>
+      <main class="right">
+        {{if .About}}<section class="card"><p class="h">О себе</p><p class="b">{{.About}}</p></section>{{end}}
+        {{if .Experience}}<section class="card"><p class="h">Опыт работы</p>{{range .Experience}}<div style="margin-top:8px;"><p class="h">{{.Company}}{{if and .Company .Position}} — {{end}}{{.Position}}</p><p class="m">{{.Period}}</p>{{if .Duties}}<p class="b">{{.Duties}}</p>{{end}}</div>{{end}}</section>{{end}}
+        {{if .Education}}<section class="card"><p class="h">Образование</p>{{range .Education}}<div style="margin-top:8px;"><p class="h">{{.Institution}}</p><p class="m">{{.Specialty}}{{if and .Specialty .Years}} · {{end}}{{.Years}}</p></div>{{end}}</section>{{end}}
+      </main>
+    </div>
+  </body>
+</html>
+

@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>{{if .FullName}}{{.FullName}}{{else}}Резюме{{end}}</title>
+    <style>
+      @page { margin: 10mm; }
+      body { margin: 0; font-family: Arial, "Times New Roman", serif; color: #111; background: #fff; }
+      * { box-sizing: border-box; }
+      .top { display: grid; grid-template-columns: auto 1fr; gap: 14px; align-items: center; background: #111; color: #fff; padding: 14px; }
+      .photo { width: 140px; height: 140px; object-fit: cover; border: 2px solid #fff; }
+      .name { margin: 0; font-size: 30px; font-weight: 900; line-height: 1.05; }
+      .contact { margin-top: 8px; font-size: 12px; line-height: 1.4; color: #d1d5db; }
+      .layout { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+      .box { border: 2px solid #111; padding: 10px; }
+      .full { grid-column: 1 / -1; }
+      .ttl { margin: 0 0 8px; font-size: 12px; letter-spacing: .1em; text-transform: uppercase; font-weight: 900; }
+      .text { margin: 0; font-size: 12.5px; line-height: 1.45; white-space: pre-wrap; }
+      .item { margin-bottom: 10px; padding-left: 10px; border-left: 2px solid #111; }
+      .h { margin: 0; font-size: 12.5px; font-weight: 900; }
+      .m { margin: 2px 0 0; font-size: 12px; color: #374151; }
+      .b { margin: 6px 0 0; font-size: 12.5px; line-height: 1.45; white-space: pre-wrap; }
+      .pill { display: inline-block; margin: 0 6px 6px 0; padding: 4px 8px; border: 1px solid #111; font-size: 11.5px; }
+    </style>
+  </head>
+  <body>
+    <header class="top">
+      {{if .PhotoURL}}<img class="photo" src="{{.PhotoURL}}" alt="Фото" />{{end}}
+      <div>
+        <h1 class="name">{{if .FullName}}{{.FullName}}{{else}}ФИО{{end}}</h1>
+        <div class="contact">{{if .City}}{{.City}}{{end}}{{if and .City .Email}} · {{end}}{{if .Email}}{{.Email}}{{end}}{{if and (or .City .Email) .Phone}} · {{end}}{{if .Phone}}{{.Phone}}{{end}}</div>
+      </div>
+    </header>
+    <div class="layout">
+      {{if .About}}<section class="box full"><h2 class="ttl">О себе</h2><p class="text">{{.About}}</p></section>{{end}}
+      {{if .Skills}}<section class="box"><h2 class="ttl">Навыки</h2>{{range splitLines .Skills}}{{if .}}<span class="pill">{{.}}</span>{{end}}{{end}}</section>{{end}}
+      {{if .Additional}}<section class="box"><h2 class="ttl">Дополнительно</h2><p class="text">{{.Additional}}</p></section>{{end}}
+      {{if .Experience}}<section class="box full"><h2 class="ttl">Опыт работы</h2>{{range .Experience}}<div class="item"><p class="h">{{.Company}}{{if and .Company .Position}} — {{end}}{{.Position}}</p><p class="m">{{.Period}}</p>{{if .Duties}}<p class="b">{{.Duties}}</p>{{end}}</div>{{end}}</section>{{end}}
+      {{if .Education}}<section class="box full"><h2 class="ttl">Образование</h2>{{range .Education}}<div class="item"><p class="h">{{.Institution}}</p><p class="m">{{.Specialty}}{{if and .Specialty .Years}} · {{end}}{{.Years}}</p></div>{{end}}</section>{{end}}
+    </div>
+  </body>
+</html>
+

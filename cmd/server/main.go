@@ -38,6 +38,12 @@ const (
 	TemplateModern  TemplateID = "modern"
 	TemplateSidebar TemplateID = "sidebar"
 	TemplateElegant TemplateID = "elegant"
+	TemplateNordic  TemplateID = "nordic"
+	TemplateTerminal TemplateID = "terminal"
+	TemplateAcademic TemplateID = "academic"
+	TemplateMagazine TemplateID = "magazine"
+	TemplateInfographic TemplateID = "infographic"
+	TemplateMonochrome TemplateID = "monochrome"
 )
 
 var sAllowedTemplates = map[TemplateID]struct{}{
@@ -45,6 +51,12 @@ var sAllowedTemplates = map[TemplateID]struct{}{
 	TemplateModern:  {},
 	TemplateSidebar: {},
 	TemplateElegant: {},
+	TemplateNordic: {},
+	TemplateTerminal: {},
+	TemplateAcademic: {},
+	TemplateMagazine: {},
+	TemplateInfographic: {},
+	TemplateMonochrome: {},
 }
 
 type Education struct {
@@ -184,6 +196,30 @@ func newServer() (*server, error) {
 	if err != nil {
 		return nil, err
 	}
+	nordicTml, err := parse("resume_nordic.html", "web/templates/resume_nordic.html")
+	if err != nil {
+		return nil, err
+	}
+	terminalTml, err := parse("resume_terminal.html", "web/templates/resume_terminal.html")
+	if err != nil {
+		return nil, err
+	}
+	academicTml, err := parse("resume_academic.html", "web/templates/resume_academic.html")
+	if err != nil {
+		return nil, err
+	}
+	magazineTml, err := parse("resume_magazine.html", "web/templates/resume_magazine.html")
+	if err != nil {
+		return nil, err
+	}
+	infographicTml, err := parse("resume_infographic.html", "web/templates/resume_infographic.html")
+	if err != nil {
+		return nil, err
+	}
+	monochromeTml, err := parse("resume_monochrome.html", "web/templates/resume_monochrome.html")
+	if err != nil {
+		return nil, err
+	}
 
 	return &server{
 		mux:   http.NewServeMux(),
@@ -193,6 +229,12 @@ func newServer() (*server, error) {
 			TemplateModern:  modernTml,
 			TemplateSidebar: sidebarTml,
 			TemplateElegant: elegantTml,
+			TemplateNordic: nordicTml,
+			TemplateTerminal: terminalTml,
+			TemplateAcademic: academicTml,
+			TemplateMagazine: magazineTml,
+			TemplateInfographic: infographicTml,
+			TemplateMonochrome: monochromeTml,
 		},
 		photos: &photoStore{items: map[string]photoItem{}},
 	}, nil

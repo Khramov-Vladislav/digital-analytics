@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>{{if .FullName}}{{.FullName}}{{else}}Резюме{{end}}</title>
+    <style>
+      @page { margin: 8mm; }
+      body { margin: 0; font-family: Arial, "Times New Roman", serif; color: #111827; background: #fff; }
+      * { box-sizing: border-box; }
+      .mast { padding: 14px; background: #fef3c7; border: 1px solid #fcd34d; border-radius: 14px; }
+      .kicker { font-size: 11px; text-transform: uppercase; letter-spacing: .15em; color: #92400e; font-weight: 800; }
+      .headline { margin: 6px 0 0; font-size: 34px; line-height: 1; font-weight: 900; }
+      .deck { margin-top: 6px; font-size: 12.5px; color: #78350f; }
+      .layout { display: grid; grid-template-columns: 64% 36%; gap: 12px; margin-top: 12px; }
+      .panel { border: 1px solid #e5e7eb; border-radius: 12px; padding: 12px; }
+      .photo { width: 100%; max-width: 240px; height: 240px; object-fit: cover; border-radius: 12px; border: 1px solid #d1d5db; display: block; margin: 0 auto 10px; }
+      .ttl { margin: 0 0 8px; font-size: 12px; text-transform: uppercase; letter-spacing: .1em; font-weight: 900; color: #991b1b; }
+      .text { margin: 0; font-size: 12.5px; line-height: 1.45; white-space: pre-wrap; }
+      .item { margin-bottom: 10px; }
+      .h { margin: 0; font-size: 12.5px; font-weight: 800; }
+      .m { margin: 2px 0 0; font-size: 12px; color: #374151; }
+      .b { margin: 6px 0 0; font-size: 12.5px; line-height: 1.45; white-space: pre-wrap; }
+      .chips span { display: inline-block; margin: 0 6px 6px 0; padding: 5px 8px; border-radius: 8px; background: #fee2e2; font-size: 11.5px; }
+    </style>
+  </head>
+  <body>
+    <section class="mast">
+      <div class="kicker">Resume Magazine</div>
+      <h1 class="headline">{{if .FullName}}{{.FullName}}{{else}}ФИО{{end}}</h1>
+      <div class="deck">{{if .City}}{{.City}}{{end}}{{if and .City .Email}} · {{end}}{{if .Email}}{{.Email}}{{end}}{{if and (or .City .Email) .Phone}} · {{end}}{{if .Phone}}{{.Phone}}{{end}}</div>
+    </section>
+    <div class="layout">
+      <main class="panel">
+        {{if .About}}<section><h2 class="ttl">Cover Story</h2><p class="text">{{.About}}</p></section>{{end}}
+        {{if .Experience}}<section><h2 class="ttl">Experience</h2>{{range .Experience}}<div class="item"><p class="h">{{.Company}}{{if and .Company .Position}} — {{end}}{{.Position}}</p><p class="m">{{.Period}}</p>{{if .Duties}}<p class="b">{{.Duties}}</p>{{end}}</div>{{end}}</section>{{end}}
+        {{if .Education}}<section><h2 class="ttl">Education</h2>{{range .Education}}<div class="item"><p class="h">{{.Institution}}</p><p class="m">{{.Specialty}}{{if and .Specialty .Years}} · {{end}}{{.Years}}</p></div>{{end}}</section>{{end}}
+      </main>
+      <aside class="panel">
+        {{if .PhotoURL}}<img class="photo" src="{{.PhotoURL}}" alt="Фото" />{{end}}
+        {{if .Skills}}<section><h2 class="ttl">Skills Index</h2><div class="chips">{{range splitLines .Skills}}{{if .}}<span>{{.}}</span>{{end}}{{end}}</div></section>{{end}}
+        {{if .Additional}}<section><h2 class="ttl">Notes</h2><p class="text">{{.Additional}}</p></section>{{end}}
+      </aside>
+    </div>
+  </body>
+</html>
+

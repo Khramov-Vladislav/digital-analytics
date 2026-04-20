@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>{{if .FullName}}{{.FullName}}{{else}}Резюме{{end}}</title>
+    <style>
+      @page { margin: 12mm; }
+      body { margin: 0; font-family: "Times New Roman", Georgia, serif; color: #111827; }
+      * { box-sizing: border-box; }
+      .page { padding-left: 8mm; }
+      .header { display: grid; grid-template-columns: 1fr auto; gap: 16px; align-items: center; border-bottom: 2px solid #111827; padding-bottom: 10px; }
+      .name { margin: 0; font-size: 30px; font-weight: 700; }
+      .sub { margin-top: 6px; font-size: 13px; line-height: 1.4; }
+      .photo { width: 140px; height: 140px; border: 1px solid #111827; object-fit: cover; }
+      .sec { margin-top: 12px; }
+      .ttl { margin: 0 0 8px; font-size: 15px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; }
+      .rule { border-top: 1px solid #374151; margin: 6px 0 10px; }
+      .text { margin: 0; font-size: 13.5px; line-height: 1.5; white-space: pre-wrap; }
+      .row { display: grid; grid-template-columns: 24% 76%; gap: 10px; margin-bottom: 10px; }
+      .period { font-size: 12.5px; color: #374151; }
+      .content p { margin: 0; }
+      .h { font-weight: 700; font-size: 13.5px; }
+      .m { margin-top: 2px; font-size: 13px; color: #374151; }
+      .b { margin-top: 6px; font-size: 13.5px; line-height: 1.5; white-space: pre-wrap; }
+      .skills span { display: inline-block; margin: 0 10px 6px 0; font-size: 13px; }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+    <header class="header">
+      <div>
+        <h1 class="name">{{if .FullName}}{{.FullName}}{{else}}ФИО{{end}}</h1>
+        <div class="sub">{{if .City}}{{.City}}{{end}}{{if and .City .Email}} · {{end}}{{if .Email}}{{.Email}}{{end}}{{if and (or .City .Email) .Phone}} · {{end}}{{if .Phone}}{{.Phone}}{{end}}</div>
+      </div>
+      {{if .PhotoURL}}<img class="photo" src="{{.PhotoURL}}" alt="Фото" />{{end}}
+    </header>
+
+    {{if .About}}<section class="sec"><h2 class="ttl">Аннотация</h2><div class="rule"></div><p class="text">{{.About}}</p></section>{{end}}
+    {{if .Skills}}<section class="sec"><h2 class="ttl">Ключевые компетенции</h2><div class="rule"></div><div class="skills">{{range splitLines .Skills}}{{if .}}<span>• {{.}}</span>{{end}}{{end}}</div></section>{{end}}
+    {{if .Education}}
+      <section class="sec"><h2 class="ttl">Образование</h2><div class="rule"></div>
+      {{range .Education}}<div class="row"><div class="period">{{.Years}}</div><div class="content"><p class="h">{{.Institution}}</p><p class="m">{{.Specialty}}</p></div></div>{{end}}
+      </section>
+    {{end}}
+    {{if .Experience}}
+      <section class="sec"><h2 class="ttl">Профессиональный опыт</h2><div class="rule"></div>
+      {{range .Experience}}<div class="row"><div class="period">{{.Period}}</div><div class="content"><p class="h">{{.Company}}{{if and .Company .Position}} — {{end}}{{.Position}}</p>{{if .Duties}}<p class="b">{{.Duties}}</p>{{end}}</div></div>{{end}}
+      </section>
+    {{end}}
+    {{if .Additional}}<section class="sec"><h2 class="ttl">Дополнительные сведения</h2><div class="rule"></div><p class="text">{{.Additional}}</p></section>{{end}}
+    </div>
+  </body>
+</html>
+
