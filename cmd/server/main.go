@@ -17,6 +17,7 @@ import (
 	"log"
 	"mime/multipart"
 	"net/http"
+	"net/url"
 	"os"
 	"os/exec"
 	"path"
@@ -25,7 +26,6 @@ import (
 	"strings"
 	"sync"
 	"time"
-	"net/url"
 )
 
 //go:embed web/*
@@ -34,29 +34,29 @@ var webFS embed.FS
 type TemplateID string
 
 const (
-	TemplateClassic TemplateID = "classic"
-	TemplateModern  TemplateID = "modern"
-	TemplateSidebar TemplateID = "sidebar"
-	TemplateElegant TemplateID = "elegant"
-	TemplateNordic  TemplateID = "nordic"
-	TemplateTerminal TemplateID = "terminal"
-	TemplateAcademic TemplateID = "academic"
-	TemplateMagazine TemplateID = "magazine"
+	TemplateClassic     TemplateID = "classic"
+	TemplateModern      TemplateID = "modern"
+	TemplateSidebar     TemplateID = "sidebar"
+	TemplateElegant     TemplateID = "elegant"
+	TemplateNordic      TemplateID = "nordic"
+	TemplateTerminal    TemplateID = "terminal"
+	TemplateAcademic    TemplateID = "academic"
+	TemplateMagazine    TemplateID = "magazine"
 	TemplateInfographic TemplateID = "infographic"
-	TemplateMonochrome TemplateID = "monochrome"
+	TemplateMonochrome  TemplateID = "monochrome"
 )
 
 var sAllowedTemplates = map[TemplateID]struct{}{
-	TemplateClassic: {},
-	TemplateModern:  {},
-	TemplateSidebar: {},
-	TemplateElegant: {},
-	TemplateNordic: {},
-	TemplateTerminal: {},
-	TemplateAcademic: {},
-	TemplateMagazine: {},
+	TemplateClassic:     {},
+	TemplateModern:      {},
+	TemplateSidebar:     {},
+	TemplateElegant:     {},
+	TemplateNordic:      {},
+	TemplateTerminal:    {},
+	TemplateAcademic:    {},
+	TemplateMagazine:    {},
 	TemplateInfographic: {},
-	TemplateMonochrome: {},
+	TemplateMonochrome:  {},
 }
 
 type Education struct {
@@ -172,7 +172,7 @@ func newServer() (*server, error) {
 	}
 
 	funcs := template.FuncMap{
-		"splitLines": splitLines,
+		"splitLines":    splitLines,
 		"firstPosition": firstPosition,
 	}
 
@@ -222,19 +222,19 @@ func newServer() (*server, error) {
 	}
 
 	return &server{
-		mux:   http.NewServeMux(),
+		mux:    http.NewServeMux(),
 		uiTmpl: uiTmpl,
 		resumeTpl: map[TemplateID]*template.Template{
-			TemplateClassic: classicTml,
-			TemplateModern:  modernTml,
-			TemplateSidebar: sidebarTml,
-			TemplateElegant: elegantTml,
-			TemplateNordic: nordicTml,
-			TemplateTerminal: terminalTml,
-			TemplateAcademic: academicTml,
-			TemplateMagazine: magazineTml,
+			TemplateClassic:     classicTml,
+			TemplateModern:      modernTml,
+			TemplateSidebar:     sidebarTml,
+			TemplateElegant:     elegantTml,
+			TemplateNordic:      nordicTml,
+			TemplateTerminal:    terminalTml,
+			TemplateAcademic:    academicTml,
+			TemplateMagazine:    magazineTml,
 			TemplateInfographic: infographicTml,
-			TemplateMonochrome: monochromeTml,
+			TemplateMonochrome:  monochromeTml,
 		},
 		photos: &photoStore{items: map[string]photoItem{}},
 	}, nil
@@ -803,4 +803,3 @@ func findChromeBinary() (string, error) {
 	}
 	return "", errors.New("не найден Chrome/Chromium. Установите браузер или задайте переменную окружения CHROME_BIN")
 }
-
