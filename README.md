@@ -26,7 +26,7 @@ go run ./cmd/server
 
 - **Короткие поля**: до 100 символов
 - **Большие текстовые блоки**: до 1000 символов
-- **Фото**: JPG/JPEG/PNG, до 5 МБ, мин. 400×400 px
+- **Фото**: JPG/JPEG/PNG, до 5 МБ
 
 ## Тестовый пример
 
@@ -36,4 +36,22 @@ go run ./cmd/server
 
 - `cmd/server/web/static/example_ru_limits.json`
 - `cmd/server/web/static/example_en_limits.json`
+
+## Публикация на GitHub
+
+Перед публикацией:
+
+1. Проверьте, что проект собирается:
+   - `go test ./...`
+2. Убедитесь, что в репозиторий не попадают лишние файлы (см. `.gitignore`).
+3. Инициализируйте/подключите удалённый репозиторий и отправьте код:
+   - `git add .`
+   - `git commit -m "Initial version of resume generator"`
+   - `git branch -M main`
+   - `git remote add origin <your-repo-url>`
+   - `git push -u origin main`
+
+## Примечание
+
+Проект разработан с использованием AI‑ассистента Codex (Cursor).
 

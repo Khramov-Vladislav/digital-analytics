@@ -1,0 +1,27 @@
+# macOS
+.DS_Store
+
+# Go build artifacts
+bin/
+dist/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+coverage.out
+*.coverprofile
+
+# Local runtime/temp files
+tmp/
+.tmp/
+*.log
+
+# IDE/editor
+.idea/
+.vscode/
+*.swp
+*.swo
+
