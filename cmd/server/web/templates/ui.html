@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Генератор резюме</title>
+    <link rel="stylesheet" href="/static/app.css" />
+  </head>
+  <body>
+    <div class="app">
+      <header class="topbar">
+        <div class="topbar__title">Генератор резюме</div>
+        <div class="topbar__hint">Заполните форму слева — предпросмотр справа обновится автоматически.</div>
+      </header>
+
+      <main class="main">
+        <section class="panel panel--form">
+          <form id="resumeForm" class="form" enctype="multipart/form-data">
+            <div class="row">
+              <label class="field">
+                <span class="field__label">Шаблон</span>
+                <select class="field__control" name="template" id="template">
+                  <option value="classic" selected>Классический</option>
+                  <option value="modern">Современный</option>
+                  <option value="sidebar">Сайдбар</option>
+                  <option value="elegant">Элегантный</option>
+                </select>
+              </label>
+            </div>
+
+            <div class="row row--3">
+              <label class="field">
+                <span class="field__label">ФИО</span>
+                <input class="field__control" name="full_name" maxlength="100" placeholder="Иванов Иван Иванович" />
+              </label>
+              <label class="field">
+                <span class="field__label">Телефон</span>
+                <input class="field__control" name="phone" maxlength="100" placeholder="+7 999 123-45-67" />
+              </label>
+              <label class="field">
+                <span class="field__label">Email</span>
+                <input class="field__control" name="email" maxlength="100" placeholder="ivan@example.com" />
+              </label>
+            </div>
+
+            <div class="row row--2">
+              <label class="field">
+                <span class="field__label">Город</span>
+                <input class="field__control" name="city" maxlength="100" placeholder="Москва" />
+              </label>
+              <label class="field">
+                <span class="field__label">Фотография (JPG/PNG, до 5 МБ, мин 400×400)</span>
+                <input class="field__control" type="file" name="photo" accept=".jpg,.jpeg,.png,image/jpeg,image/png" />
+              </label>
+            </div>
+
+            <label class="field">
+              <span class="field__label">Краткая информация о себе</span>
+              <textarea class="field__control field__control--textarea" name="about" maxlength="1000" placeholder="Кратко опишите опыт и цели"></textarea>
+            </label>
+
+            <label class="field">
+              <span class="field__label">Навыки</span>
+              <textarea class="field__control field__control--textarea" name="skills" maxlength="1000" placeholder="Go, SQL, Docker, Git..."></textarea>
+            </label>
+
+            <div class="group">
+              <div class="group__head">
+                <div class="group__title">Образование</div>
+                <button class="btn btn--ghost" type="button" id="addEdu">+ Добавить</button>
+              </div>
+              <div id="eduList" class="repeat"></div>
+            </div>
+
+            <div class="group">
+              <div class="group__head">
+                <div class="group__title">Опыт работы</div>
+                <button class="btn btn--ghost" type="button" id="addExp">+ Добавить</button>
+              </div>
+              <div id="expList" class="repeat"></div>
+            </div>
+
+            <label class="field">
+              <span class="field__label">Дополнительная информация</span>
+              <textarea class="field__control field__control--textarea" name="additional" maxlength="1000" placeholder="Языки, сертификаты, ссылки..."></textarea>
+            </label>
+
+            <div class="actions">
+              <button class="btn" type="button" id="fillExample">Заполнить пример</button>
+              <button class="btn" type="button" id="fillExampleRu">Пример RU (лимиты)</button>
+              <button class="btn" type="button" id="fillExampleEn">Example EN (limits)</button>
+              <button class="btn btn--primary" type="button" id="downloadPdf">Скачать PDF</button>
+              <div class="status" id="status"></div>
+            </div>
+          </form>
+        </section>
+
+        <section class="panel panel--preview">
+          <div class="previewHeader">
+            <div class="previewHeader__title">Предпросмотр</div>
+            <div class="previewHeader__note">Если что-то выглядит не так — поправьте данные в форме.</div>
+          </div>
+          <iframe id="previewFrame" class="previewFrame" title="Resume preview"></iframe>
+        </section>
+      </main>
+    </div>
+
+    <script src="/static/app.js"></script>
+  </body>
+</html>
+

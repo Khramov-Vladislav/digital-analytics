@@ -1,0 +1,37 @@
+{
+  "template": "elegant",
+  "full_name": "Петрова Алина Сергеевна",
+  "phone": "+7 (915) 555-12-34",
+  "email": "alina.petrow@example.com",
+  "city": "Санкт‑Петербург",
+  "about": "Go‑разработчик (2+ года). Делаю HTTP‑сервисы на стандартной библиотеке, проектирую схемы данных и интеграции.\nЛюблю понятные API, читаемый код и измеримую производительность.",
+  "skills": "Go, net/http, templates\nPostgreSQL, SQL\nDocker, Linux\nGit, CI\nREST, JSON",
+  "additional": "Языки: Русский (родной), English (B2)\nСертификаты: Google IT Support (2024)\nСсылки: github.com/example | linkedin.com/in/example",
+  "education": [
+    {
+      "edu_institution": "СПбПУ Петра Великого",
+      "edu_specialty": "Информатика и вычислительная техника",
+      "edu_years": "2019–2023"
+    },
+    {
+      "edu_institution": "Курсы",
+      "edu_specialty": "Backend на Go (практика)",
+      "edu_years": "2023"
+    }
+  ],
+  "experience": [
+    {
+      "exp_company": "ООО «СеверТех»",
+      "exp_position": "Go Developer",
+      "exp_period": "Июль 2024 — н.в.",
+      "exp_duties": "— Разработала сервис генерации документов (HTML→PDF) и предпросмотр.\n— Реализовала валидацию и обработку загрузки изображений.\n— Оптимизировала обработку запросов и логирование ошибок."
+    },
+    {
+      "exp_company": "Фриланс",
+      "exp_position": "Backend Engineer",
+      "exp_period": "2023 — 2024",
+      "exp_duties": "— Небольшие API для интернет‑магазинов и CRM.\n— Интеграции со сторонними сервисами и базами данных."
+    }
+  ]
+}
+

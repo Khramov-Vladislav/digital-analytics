@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>{{if .FullName}}{{.FullName}}{{else}}Резюме{{end}}</title>
+    <style>
+      @page { margin: 0; }
+      body { font-family: Arial, "Times New Roman", serif; color: #0b1220; }
+      * { box-sizing: border-box; }
+      .page { width: 100%; min-height: 297mm; }
+      .grid { display: grid; grid-template-columns: 34% 66%; min-height: 297mm; }
+      .side { background: #0f172a; color: #fff; padding: 18mm 12mm; }
+      .main { padding: 18mm 16mm; }
+      .photo { width: 140px; height: 140px; border-radius: 18px; object-fit: cover; border: 2px solid rgba(255,255,255,.25); margin-bottom: 12px; }
+      .name { margin: 0; font-size: 22px; font-weight: 900; line-height: 1.1; }
+      .muted { color: rgba(255,255,255,.85); }
+      .contact { margin-top: 10px; font-size: 12px; line-height: 1.35; }
+      .sideTitle { margin: 16px 0 8px; font-size: 11px; letter-spacing: .12em; text-transform: uppercase; font-weight: 800; color: rgba(255,255,255,.85); }
+      .chip { display: inline-block; margin: 0 6px 6px 0; padding: 6px 9px; border-radius: 999px; background: rgba(255,255,255,.10); border: 1px solid rgba(255,255,255,.15); font-size: 11.5px; }
+      .text { font-size: 12.5px; line-height: 1.45; white-space: pre-wrap; margin: 0; color: #111827; }
+      .section { margin-bottom: 14px; }
+      .section__title { display: flex; align-items: center; gap: 10px; margin: 0 0 8px; font-size: 12px; letter-spacing: .10em; text-transform: uppercase; font-weight: 900; }
+      .bar { width: 26px; height: 2px; background: #6366f1; border-radius: 2px; }
+      .item { margin: 0 0 10px; }
+      .item__head { font-size: 12.5px; font-weight: 900; margin: 0; color: #0f172a; }
+      .item__meta { font-size: 12px; color: #334155; margin: 2px 0 0; }
+      .item__body { font-size: 12.5px; line-height: 1.45; white-space: pre-wrap; margin: 6px 0 0; color: #111827; }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <div class="grid">
+        <aside class="side">
+          {{if .PhotoURL}}<img class="photo" src="{{.PhotoURL}}" alt="Фото" />{{end}}
+          <h1 class="name">{{if .FullName}}{{.FullName}}{{else}}ФИО{{end}}</h1>
+
+          <div class="contact muted">
+            {{if .City}}<div>⌂ {{.City}}</div>{{end}}
+            {{if .Phone}}<div>☎ {{.Phone}}</div>{{end}}
+            {{if .Email}}<div>✉ {{.Email}}</div>{{end}}
+          </div>
+
+          {{if .Skills}}
+            <div class="sideTitle">Навыки</div>
+            <div>
+              {{range splitLines .Skills}}
+                {{if .}}<span class="chip">{{.}}</span>{{end}}
+              {{end}}
+            </div>
+          {{end}}
+
+          {{if .Additional}}
+            <div class="sideTitle">Дополнительно</div>
+            <div class="contact muted" style="white-space: pre-wrap;">{{.Additional}}</div>
+          {{end}}
+        </aside>
+
+        <main class="main">
+          {{if .About}}
+          <section class="section">
+            <h2 class="section__title"><span class="bar"></span>Профиль</h2>
+            <p class="text">{{.About}}</p>
+          </section>
+          {{end}}
+
+          {{if .Experience}}
+          <section class="section">
+            <h2 class="section__title"><span class="bar"></span>Опыт работы</h2>
+            {{range .Experience}}
+              <div class="item">
+                <p class="item__head">{{.Company}}{{if and .Company .Position}} — {{end}}{{.Position}}</p>
+                <p class="item__meta">{{.Period}}</p>
+                {{if .Duties}}<p class="item__body">{{.Duties}}</p>{{end}}
+              </div>
+            {{end}}
+          </section>
+          {{end}}
+
+          {{if .Education}}
+          <section class="section">
+            <h2 class="section__title"><span class="bar"></span>Образование</h2>
+            {{range .Education}}
+              <div class="item">
+                <p class="item__head">{{.Institution}}</p>
+                <p class="item__meta">{{.Specialty}}{{if and .Specialty .Years}} · {{end}}{{.Years}}</p>
+              </div>
+            {{end}}
+          </section>
+          {{end}}
+        </main>
+      </div>
+    </div>
+  </body>
+</html>
+

@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>{{if .FullName}}{{.FullName}}{{else}}Резюме{{end}}</title>
+    <style>
+      @page { margin: 6mm; }
+      body { margin: 0; font-family: "Times New Roman", Arial, serif; color: #111; }
+      * { box-sizing: border-box; }
+      .wrap { max-width: none; width: 100%; margin: 0; }
+      .header {
+        border: 1px solid #e7e2da;
+        border-radius: 16px;
+        padding: 14px 16px;
+        background: linear-gradient(180deg, #fbf9f6, #fff);
+        display: grid;
+        grid-template-columns: 1fr auto;
+        align-items: center;
+        gap: 16px;
+      }
+      .name { margin: 0; font-size: 30px; font-weight: 800; letter-spacing: .01em; }
+      .tagline { margin: 6px 0 0; font-size: 12.5px; color: #3f3a33; }
+      .contacts { margin-top: 10px; font-size: 12px; color: #3f3a33; line-height: 1.4; }
+      .pill { display: inline-block; padding: 4px 9px; border: 1px solid #e7e2da; border-radius: 999px; margin-right: 6px; margin-bottom: 6px; font-size: 11.5px; background: #fff; }
+      .photo { width: 140px; height: 140px; border-radius: 18px; object-fit: cover; border: 1px solid #e7e2da; }
+      .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 14px; }
+      .section { border: 1px solid #eee7df; border-radius: 16px; padding: 12px 14px; }
+      .section--wide { grid-column: 1 / -1; }
+      .section__title { margin: 0 0 8px; font-size: 12px; letter-spacing: .14em; text-transform: uppercase; font-weight: 800; color: #2c2824; }
+      .text { margin: 0; font-size: 12.5px; line-height: 1.5; white-space: pre-wrap; }
+      .item { margin: 0 0 10px; }
+      .item__head { margin: 0; font-size: 12.8px; font-weight: 800; }
+      .item__meta { margin: 2px 0 0; font-size: 12px; color: #3f3a33; }
+      .item__body { margin: 6px 0 0; font-size: 12.5px; line-height: 1.5; white-space: pre-wrap; }
+      .rule { height: 1px; background: #eee7df; margin: 10px 0; }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="header">
+        <div>
+          <h1 class="name">{{if .FullName}}{{.FullName}}{{else}}ФИО{{end}}</h1>
+          <div class="tagline">
+            {{if .City}}<span class="pill">{{.City}}</span>{{end}}
+            {{if .Phone}}<span class="pill">{{.Phone}}</span>{{end}}
+            {{if .Email}}<span class="pill">{{.Email}}</span>{{end}}
+          </div>
+          {{if .Skills}}
+            <div class="contacts">
+              {{range splitLines .Skills}}
+                {{if .}}<span class="pill">{{.}}</span>{{end}}
+              {{end}}
+            </div>
+          {{end}}
+        </div>
+        {{if .PhotoURL}}<img class="photo" src="{{.PhotoURL}}" alt="Фото" />{{end}}
+      </div>
+
+      <div class="grid">
+        {{if .About}}
+        <section class="section section--wide">
+          <h2 class="section__title">О себе</h2>
+          <p class="text">{{.About}}</p>
+        </section>
+        {{end}}
+
+        {{if .Experience}}
+        <section class="section section--wide">
+          <h2 class="section__title">Опыт работы</h2>
+          {{range .Experience}}
+            <div class="item">
+              <p class="item__head">{{.Company}}{{if and .Company .Position}} — {{end}}{{.Position}}</p>
+              <p class="item__meta">{{.Period}}</p>
+              {{if .Duties}}<p class="item__body">{{.Duties}}</p>{{end}}
+            </div>
+            <div class="rule"></div>
+          {{end}}
+        </section>
+        {{end}}
+
+        {{if .Education}}
+        <section class="section">
+          <h2 class="section__title">Образование</h2>
+          {{range .Education}}
+            <div class="item">
+              <p class="item__head">{{.Institution}}</p>
+              <p class="item__meta">{{.Specialty}}{{if and .Specialty .Years}} · {{end}}{{.Years}}</p>
+            </div>
+          {{end}}
+        </section>
+        {{end}}
+
+        {{if .Additional}}
+        <section class="section">
+          <h2 class="section__title">Дополнительно</h2>
+          <p class="text">{{.Additional}}</p>
+        </section>
+        {{end}}
+      </div>
+    </div>
+  </body>
+</html>
+

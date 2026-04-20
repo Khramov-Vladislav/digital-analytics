@@ -1,0 +1,37 @@
+{
+  "template": "elegant",
+  "full_name": "Alexandra Katherine Montgomery (limits test: full name close to 100 characters) Montgomery",
+  "phone": "+1 (415) 555-0100 ext. 12345 (limits test: phone string close to 100 characters total)",
+  "email": "alexandra.montgomery.limits-test+resume.generator@very-long-example-domain.com",
+  "city": "San Francisco, California, United States (limits test: city string close to 100 characters)",
+  "about": "EN LIMITS TEST (long field close to 1000 chars).\n\nBackend engineer with Go experience. This block is intentionally long to validate the 1000‑character limit, UTF‑8 handling, and multi‑line rendering in preview/PDF.\n\nFocus areas: API design, reliability, SQL data modeling, and automation. I enjoy clear contracts, predictable error handling, and small deployable services. I also care about document generation quality: consistent layout, correct fonts, and reproducible PDF output.\n\nFiller to reach length: The quick brown fox jumps over the lazy dog. The quick brown fox jumps over the lazy dog. The quick brown fox jumps over the lazy dog. The quick brown fox jumps over the lazy dog. The quick brown fox jumps over the lazy dog.",
+  "skills": "Go; net/http; html/template; JSON\nPostgreSQL; SQL; migrations\nDocker; Linux\nGit; CI\nLimits test: this skills field stays under 1000 chars but includes newlines and separators",
+  "additional": "EN LIMITS TEST (additional ~1000):\n- Languages: English (native), Russian (A2)\n- Certificates: Cloud Fundamentals (2024)\n- Links: github.com/example | linkedin.com/in/example\n\nFiller: 0123456789 0123456789 0123456789 0123456789 0123456789 0123456789 0123456789 0123456789 0123456789.\n\nNote: includes bullets and newlines to test formatting.",
+  "education": [
+    {
+      "edu_institution": "University of California, Berkeley — College of Engineering (limits test: institution near 100)",
+      "edu_specialty": "Computer Science and Engineering (limits test: specialty near 100 characters total)",
+      "edu_years": "2017–2021"
+    },
+    {
+      "edu_institution": "Courses: Go Backend Engineering / Practical HTTP Services (limits test up to 100 chars)",
+      "edu_specialty": "REST API design, SQL performance, testing",
+      "edu_years": "2022"
+    }
+  ],
+  "experience": [
+    {
+      "exp_company": "Very Long Company Name Incorporated (limits test: company name close to 100 characters)",
+      "exp_position": "Backend Engineer (Go) / Platform Developer (limits test: position close to 100 characters)",
+      "exp_period": "Feb 2023 — Present",
+      "exp_duties": "EN LIMITS TEST (duties close to 1000 chars):\n- Built HTTP services in Go (net/http) with strict input validation and clear error contracts.\n- Designed PostgreSQL schemas, wrote queries, and improved performance via indexes.\n- Implemented HTML rendering and PDF generation with consistent layout.\n- Worked on image upload pipelines and ensured correct content types.\n- Maintained CI, code quality checks, and release automation.\n\nFiller: The quick brown fox jumps over the lazy dog. The quick brown fox jumps over the lazy dog. The quick brown fox jumps over the lazy dog. The quick brown fox jumps over the lazy dog."
+    },
+    {
+      "exp_company": "Freelance / Side projects",
+      "exp_position": "Backend Developer",
+      "exp_period": "2021 — 2022",
+      "exp_duties": "- Small APIs and integrations.\n- Docker deployments.\n- Documentation and support."
+    }
+  ]
+}
+
